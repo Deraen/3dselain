@@ -13,6 +13,9 @@ class Material;
 
 class Engine {
 public:
+
+    ~Engine();
+
     static void HandleKeys();
 
     static void display();

@@ -77,6 +77,12 @@ Engine::Engine():
     objects_.push_back(new Cube(blue, 0, 0, 20));
 }
 
+Engine::~Engine() {
+    for (unsigned int i = 0; i < objects_.size(); ++i) {
+        // delete objects_.at(i); // XXX
+    }
+}
+
 void Engine::HandleKeys() {
     if (instance()->keys_['q']) exit(0); // hmmm
 

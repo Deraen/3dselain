@@ -36,8 +36,8 @@ private:
 
     // Matrix rot_;
 
-    // float heading_;
-    // float pitch_;
+    float heading_;
+    float pitch_;
 };
 
 #endif

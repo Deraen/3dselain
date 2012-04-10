@@ -6,17 +6,15 @@ Quaternion::Quaternion(float x, float y, float z, float w):
 {}
 
 Quaternion::Quaternion(const Vec3& v, float angle) {
-	float sinAngle;
-	angle *= 0.5f;
 	Vec3 vn(v);
 	vn.normalize();
 
-	sinAngle = sin(angle);
+	float sinAngle = sin(0.5 * angle);
 
-	x_ = (vn.x * sinAngle);
-	y_ = (vn.y * sinAngle);
-	z_ = (vn.z * sinAngle);
-	w_ = cos(angle);
+	x_ = vn.x * sinAngle;
+	y_ = vn.y * sinAngle;
+	z_ = vn.z * sinAngle;
+	w_ = cos(0.5 * angle);
 }
 
 // normalising a quaternion works similar to a vector. This method will not do anything
@@ -66,12 +64,21 @@ Vec3 Quaternion::operator* (const Vec3 &vec) const
 	return Vec3(resQuat.x_, resQuat.y_, resQuat.z_);
 }
 
-// Convert to Axis/Angles
-float Quaternion::getAxisAngle(Vec3 axis)
-{
-	float scale = sqrt(x_ * x_ + y_ * y_ + z_ * z_);
-	axis.x = x_ / scale;
-	axis.y = y_ / scale;
-	axis.z = z_ / scale;
-	return acos(w_) * 2.0;
+float Quaternion::getHeading() const {
+	// return atan2(2*(x_ * w_ + y_ * z_), 1 - 2 * (z_ * z_ + w_ * w_));
+	return atan((2 * (x_ * w_ + y_ * z_)) / (1 - 2 * (z_ * z_ + w_ * w_)));
 }
+
+float Quaternion::getPitch() const {
+	return asin(2*(x_ * z_ * y_ * w_));
+}
+
+// Convert to Axis/Angles
+// float Quaternion::getAxisAngle(Vec3 axis)
+// {
+// 	float scale = sqrt(x_ * x_ + y_ * y_ + z_ * z_);
+// 	axis.x = x_ / scale;
+// 	axis.y = y_ / scale;
+// 	axis.z = z_ / scale;
+// 	return acos(w_) * 2.0;
+// }

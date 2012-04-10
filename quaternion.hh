@@ -18,7 +18,9 @@ public:
 	Quaternion operator* (const Quaternion &rq) const;
 	Vec3 operator* (const Vec3 &vec) const;
 
-	float getAxisAngle(Vec3 axis);
+	float getPitch() const;
+	float getHeading() const;
+	// float getAxisAngle(Vec3 axis);
 private:
 	float x_;
 	float y_;
