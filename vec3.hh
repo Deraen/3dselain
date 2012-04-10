@@ -23,6 +23,10 @@ struct Vec3 {
         return *this;
     }
 
+    Vec3 operator *(const double b) {
+        return Vec3(b * x, b * y, b * z);
+    }
+
     void rotateYX(const float yAngle, const float xAngle) {
         float yRad = angle2rad(yAngle);
         float xRad = angle2rad(xAngle);

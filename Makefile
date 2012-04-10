@@ -1,6 +1,6 @@
 # objektitiedostot
 SRC = main.cc engine.cc common.cc alusta.cc light.cc \
- solidmaterial.cc cube.cc sun.cc camera.cc matrix.cc \
+ solidmaterial.cc cube.cc sun.cc camera.cc \
  quaternion.cc
 OBJS = $(SRC:.cc=.o)
 
