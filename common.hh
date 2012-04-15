@@ -3,6 +3,12 @@
 
 const double PI = 3.141592;
 
-double angle2rad(const double angle);
+inline double deg2rad(const double angle) {
+	return angle * PI / 180;
+}
+
+inline double rad2deg(const double rad) {
+	return rad * 180 / PI;
+}
 
 #endif

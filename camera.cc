@@ -13,48 +13,65 @@ using std::endl;
 
 Camera::Camera(const float x, const float y, const float z):
     pos_(x, y, z),
-    rot_(0.0, 0.0, 0.0, 0.0),
-    heading_(180),
-    pitch_(-15)
+    width_(0),
+    height_(0),
+    rot_(4, 4)
 {
-    rot_ = Quaternion(Vec3(0.0, 1.0, 0.0), heading_ * PI / 180) * Quaternion(Vec3(1.0, 0.0, 0.0), pitch_ * PI / 180);
+    rot_ << 1 << 0 << 0 << 0
+         << 0 << 1 << 0 << 0
+         << 0 << 0 << 1 << 0
+         << 0 << 0 << 0 << 1;
+
+    heading(45);
+    pitch(-25);
 }
 
 void Camera::move(float amount) {
-    Vec3 delta = rot_ * Vec3(0.0, 0.0, 1.0);
-    pos_ += delta * amount;
+    Matrix delta(0.0, 0.0, 1.0);
+    delta = rot_ * delta;
+    delta *= amount;
+    pos_ += delta;
 }
 
 void Camera::strafe(float amount) {
-    Vec3 delta = rot_ * Vec3(1.0, 0.0, 0.0);
-    pos_ += delta * amount;
+    Matrix delta(1.0, 0.0, 0.0);
+    delta = rot_ * delta;
+    delta *= amount;
+    pos_ += delta;
 }
 
 void Camera::moveHeight(float amount) {
-    Vec3 delta = rot_ * Vec3(0.0, 1.0, 0.0);
-    pos_ += delta * amount;
+    Matrix delta(0.0, 1.0, 0.0);
+    delta = rot_ * delta;
+    delta *= amount;
+    pos_ += delta;
 }
 
 void Camera::pitch(float amount) {
-    pitch_ += amount;
-    if (pitch_ < -90) pitch_ = -90;
-    else if (pitch_ > 90) pitch_ = 90;
-    else {
-        Quaternion nrot(Vec3(1.0f, 0.0f, 0.0f), amount * PIOVER180);
-        rot_ = rot_ * nrot;
-    }
+    amount = deg2rad(amount);
+
+    Matrix rx(4, 4);
+    rx << 1 << 0           << 0            << 0
+       << 0 << cos(amount) << -sin(amount) << 0
+       << 0 << sin(amount) << cos(amount)  << 0
+       << 0 << 0           << 0            << 1;
+
+    rot_ = rot_ * rx;
 }
 
 void Camera::heading(float amount) {
-    heading_ += amount;
+    amount = deg2rad(amount);
 
-    Quaternion nrot(Vec3(0.0f, 1.0f, 0.0f), amount * PIOVER180);
-    rot_ = nrot * rot_;
+    Matrix ry(4, 4);
+    ry << cos(amount)  << 0 << sin(amount) << 0
+       << 0            << 1 << 0           << 0
+       << -sin(amount) << 0 << cos(amount) << 0
+       << 0            << 0 << 0           << 1;
+
+    rot_ = ry * rot_;
 }
 
 void Camera::set() {
-    // XXX: kiihtyvyys
-
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(45.0, static_cast<float>(width_) / static_cast<float>(height_), 0.1, 100);
@@ -62,12 +79,9 @@ void Camera::set() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    glRotatef(-pitch_, 1.0, 0.0, 0.0);
-    glRotatef(-heading_, 0.0, 1.0, 0.0);
-    // glRotatef(-rot_.getPitch() * 180 / PI, 1.0, 0.0, 0.0);
-    // glRotatef(-rot_.getHeading() * 180 / PI, 0.0, 1.0, 0.0);
+    glMultMatrixd(rot_.data());
 
-    glTranslatef(-pos_.x, -pos_.y, -pos_.z);
+    glTranslatef(-pos_.get(X), -pos_.get(Y), -pos_.get(Z));
 }
 
 void Camera::setDisplayDim(const int w, const int h) {

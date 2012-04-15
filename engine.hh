@@ -6,10 +6,13 @@
 #include <string>
 #include <cassert>
 
+#include <sys/time.h>
+
 class Drawable;
 class Material;
 
 #include "camera.hh"
+#include "timer.hh"
 
 class Engine {
 public:
@@ -32,6 +35,9 @@ public:
 
     static Engine* instance();
 
+    static const unsigned int FPS;
+    static const unsigned int NS_PER_FRAME;
+
 private:
 
     Engine();
@@ -39,8 +45,9 @@ private:
     static Engine* instance_;
 
     Camera camera_;
+    Timer timer_;
     bool keys_[256];
-    float time_;
+    double startTime_;
     std::map<std::string, Material*> materials_;
     std::vector<Drawable*> objects_;
 

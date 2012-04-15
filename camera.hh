@@ -6,8 +6,8 @@
 #include <GL/glut.h>
 #include "common.hh"
 #include "vec3.hh"
-// #include "matrix.hh"
-#include "quaternion.hh"
+#include "matrix.hh"
+// #include "quaternion.hh"
 
 class Camera {
 public:
@@ -27,17 +27,17 @@ public:
     void setDisplayDim(const int w, const int h);
 
 private:
-    Vec3 pos_;
-    // Matrix pos_;
-    Quaternion rot_;
+    // Vec3 pos_;
+    Matrix pos_;
+    // Quaternion rot_;
 
     int width_;
     int height_;
 
-    // Matrix rot_;
+    Matrix rot_;
 
-    float heading_;
-    float pitch_;
+    // float heading_;
+    // float pitch_;
 };
 
 #endif
