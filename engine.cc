@@ -19,21 +19,24 @@ using std::string;
 
 #include "engine.hh"
 
+const unsigned int Engine::FPS = 60;
+const unsigned int Engine::NS_PER_FRAME = pow(10, 9) / Engine::FPS;
+
 Engine* Engine::instance_ = NULL;
 
 void Engine::create() {
-    assert(instance_ == NULL && "PERKELE");
+    assert(instance_ == NULL && "Engine-instansseja ei voi luoda useampia.");
     instance_ = new Engine;
 }
 
 Engine* Engine::instance() {
     if (instance_ != NULL) return instance_;
-    assert(false && "ARGH VITTU");
+    assert(false && "Engine-instanssia ei ole luotu.");
 }
 
 Engine::Engine():
     camera_(0.0, 10.0, 0.0),
-    time_(0),
+    timer_(),
     lightN(GL_LIGHT0)
 {
     for (unsigned int i = 0; i <= 255; ++i) {
@@ -99,8 +102,6 @@ void Engine::HandleKeys() {
 }
 
 void Engine::display() {
-    instance()->time_ += 0.01;
-
     // Tyhjennetään ruutu ja Z-puskuri
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -115,7 +116,7 @@ void Engine::display() {
         // Jos piirrettävä toteuttaa Animated luokan niin kutsutaan sen
         // animate funktiota joka esim. siirtää sen sijaintia
         Animated* animate = dynamic_cast<Animated*>(obj);
-        if (animate != NULL) animate->animate(instance()->time_);
+        if (animate != NULL) animate->animate(instance()->timer_.millisecondsSinceStart() / 10.0);
 
         obj->draw();
 
@@ -134,6 +135,10 @@ void Engine::resize(int newWidth, int newHeight) {
 }
 
 void Engine::animate() {
+    if (!instance()->timer_.ellapsed(Engine::NS_PER_FRAME)) {
+        return;
+    }
+
     HandleKeys();
     glutPostRedisplay();
 }
