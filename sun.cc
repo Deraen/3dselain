@@ -2,7 +2,7 @@
 
 #include "sun.hh"
 
-Sun::Sun(GLenum n): Light(n)
+Sun::Sun(): Light(GL_LIGHT0)
 {
 	setSpecular(1.0, 1.0, 1.0);
     setAmbient(0.0, 0.0, 0.0);
@@ -10,8 +10,8 @@ Sun::Sun(GLenum n): Light(n)
 }
 
 void Sun::draw() {
-	glLightf(n, GL_LINEAR_ATTENUATION, 0.01); // Valo heikkenee hieman etäisyyden funktiona
-	glLightf(n, GL_QUADRATIC_ATTENUATION, 0.01);
+	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.01); // Valo heikkenee hieman etäisyyden funktiona
+	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.01);
 
 	Light::draw();
 }

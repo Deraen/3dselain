@@ -7,8 +7,12 @@
 
 #define BUFFER_OFFSET(x)((char *)NULL+(x))
 
-Alusta::Alusta(Material* material): material_(material)
+Alusta::Alusta()
 {
+    material_.setShinines(128);
+    material_.setDiffuse(0.2, 1.0, 0.2);
+    material_.setSpecular(1.0, 1.0, 1.0);
+
     glGenBuffers(1, &vbo_);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
     glBufferData(GL_ARRAY_BUFFER, sizeof (struct vertex_struct) * VERTEX_COUNT, vertexs, GL_STATIC_DRAW);
@@ -20,10 +24,12 @@ Alusta::Alusta(Material* material): material_(material)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void Alusta::draw() {
-	material_->use();
+Alusta::~Alusta()
+{}
 
-	// glRotatef(-90.0, 1.0, 0.0, 1.0);
+void Alusta::draw() {
+	material_.use();
+
 	glRotatef(-90, 1.0, 0.0, 0.0);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);

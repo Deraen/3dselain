@@ -33,10 +33,10 @@ public:
 
 	// palauttaa millisekuntit timerin käynnistämisestä
 	// esim. 16.7sec -> 167msec
-	double millisecondsSinceStart() const {
+	double secondsSinceStart() const {
 		timespec now;
 		clock_gettime(CLOCK_MONOTONIC, &now);
-		return 10 * (now.tv_sec - start_.tv_sec) + ((now.tv_nsec - start_.tv_nsec) / pow(10, 8));
+		return now.tv_sec - start_.tv_sec + ((now.tv_nsec - start_.tv_nsec) / pow(10, 9));
 	}
 
 private:

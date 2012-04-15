@@ -56,7 +56,10 @@ void Camera::pitch(float amount) {
        << 0 << sin(amount) << cos(amount)  << 0
        << 0 << 0           << 0            << 1;
 
-    rot_ = rot_ * rx;
+    // Ei suoriteta pyöritystä jos sen seurauksena katsottaisiin
+    // taaksepäin (pitch lukittu -90 ja 90 välille)
+    Matrix newrot = rot_ * rx;
+    if (newrot.get(1, 1) >= 0) rot_ = newrot;
 }
 
 void Camera::heading(float amount) {
