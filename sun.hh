@@ -6,7 +6,7 @@
 
 class Sun : public Light, public Animated {
 public:
-	Sun(GLenum n);
+	Sun();
 	void draw();
 	void animate(float time);
 };
