@@ -13,8 +13,6 @@ using std::endl;
 
 Camera::Camera(const float x, const float y, const float z):
     pos_(x, y, z),
-    width_(0),
-    height_(0),
     rot_(4, 4)
 {
     rot_ << 1 << 0 << 0 << 0
@@ -75,19 +73,10 @@ void Camera::heading(float amount) {
 }
 
 void Camera::set() {
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(45.0, static_cast<float>(width_) / static_cast<float>(height_), 0.1, 100);
-
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
     glMultMatrixd(rot_.data());
 
     glTranslatef(-pos_.get(X), -pos_.get(Y), -pos_.get(Z));
-}
-
-void Camera::setDisplayDim(const int w, const int h) {
-    width_ = w;
-    height_ = h;
 }

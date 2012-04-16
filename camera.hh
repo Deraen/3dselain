@@ -24,20 +24,9 @@ public:
 
     void set();
 
-    void setDisplayDim(const int w, const int h);
-
 private:
-    // Vec3 pos_;
     Matrix pos_;
-    // Quaternion rot_;
-
-    int width_;
-    int height_;
-
     Matrix rot_;
-
-    // float heading_;
-    // float pitch_;
 };
 
 #endif

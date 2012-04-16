@@ -24,7 +24,7 @@ Timer timer_;
 bool keys_[256];
 bool buttons_[3];
 vector<Drawable*> objects_;
-unsigned int windowWidth_, windowHeight_, x_, y_, oldX_, oldY_;
+unsigned int windowWidth_, windowHeight_, rotX_, rotY_, oldX_, oldY_;
 
 // Eri objekteja varten
 #include "sun.hh"
@@ -69,6 +69,10 @@ void display() {
     // Tyhjennetään ruutu ja Z-puskuri
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45.0, static_cast<float>(windowWidth_) / static_cast<float>(windowHeight_), 0.1, 100);
+
     camera_.set();
 
     double secondsSinceStart = timer_.secondsSinceStart();
@@ -94,12 +98,9 @@ void display() {
 }
 
 void resize(int newWidth, int newHeight) {
-    // Asetetaan piirtoalue uudelleen, ja päivitetään leveys/korkeus; display-funktiossa
-    //  kutsutaan gluPerspective-funktiota näistä lasketulla aspektisuhteella
     glViewport(0, 0, newWidth, newHeight);
     windowWidth_ = newWidth;
     windowHeight_ = newHeight;
-    camera_.setDisplayDim(newWidth, newHeight);
 }
 
 void handleKeys() {
@@ -121,15 +122,16 @@ void handleKeys() {
         double w = static_cast<double>(windowWidth_) / 2;
         double h = static_cast<double>(windowHeight_) / 2;
         // käänny korkeintaan 1° per ruudun piirto
-        double heading = -(static_cast<double>(x_) - w) / w * 1;
-        double pitch   = -(static_cast<double>(y_) - h) / h * 1;
+        double heading = -(static_cast<double>(rotX_) - w) / w * 1;
+        double pitch   = -(static_cast<double>(rotY_) - h) / h * 1;
         camera_.heading(heading);
         camera_.pitch(pitch);
     }
 }
 
 void mouse(int button, int state, int x, int y) {
-    if (button < 0 || button > 3) return;
+    if (button < GLUT_LEFT_BUTTON
+     || button > GLUT_RIGHT_BUTTON) return;
 
     if (state == GLUT_DOWN) {
         buttons_[button] = true;
@@ -149,8 +151,8 @@ void motion(int x, int y) {
     if (buttons_[GLUT_RIGHT_BUTTON]) {
         // talletetaan koordinaatit jotta voidaan kääntää kameraa
         // kun ensikerran piirretään ruutua
-        x_ = x;
-        y_ = y;
+        rotX_ = x;
+        rotY_ = y;
     }
 }
 
