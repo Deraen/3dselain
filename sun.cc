@@ -1,4 +1,5 @@
 #include <cmath>
+#include <GL/glut.h>
 
 #include "sun.hh"
 
@@ -12,6 +13,9 @@ Sun::Sun(): Light(GL_LIGHT0)
 void Sun::draw() {
 	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.01); // Valo heikkenee hieman etäisyyden funktiona
 	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.01);
+
+	glTranslatef(position[0], position[1], position[2]);
+	glutSolidSphere(2.0, 16, 16);
 
 	Light::draw();
 }

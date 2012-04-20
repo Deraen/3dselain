@@ -17,6 +17,7 @@ const int DEF_WINDOW_HEIGHT = 600;
 const unsigned int FPS = 60;
 const unsigned int NS_PER_FRAME = pow(10, 9) / FPS;
 const unsigned int NUM_OF_KEYS = sizeof(char);
+const unsigned int NUM_OF_BUTTONS = 3;
 
 // --- GLOBAALIT ---
 Camera camera_(0.0, 10.0, 0.0);
@@ -34,6 +35,9 @@ unsigned int windowWidth_, windowHeight_, rotX_, rotY_, oldX_, oldY_;
 void init() {
     for (unsigned int i = 0; i <= NUM_OF_KEYS; ++i) {
         keys_[i] = false;
+    }
+    for (unsigned int i = 0; i <= NUM_OF_BUTTONS; ++i) {
+        buttons_[i] = false;
     }
 
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
