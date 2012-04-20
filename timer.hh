@@ -43,7 +43,7 @@ public:
 	double secondsSinceStart() const {
 		timespec now;
 		clock_gettime(CLOCK_MONOTONIC, &now);
-		return now.tv_sec - start_.tv_sec + ((now.tv_nsec - start_.tv_nsec) / ONE_SEC_NS);
+		return (1.0 * now.tv_sec) - (1.0 * start_.tv_sec) + (((1.0 * now.tv_nsec) - start_.tv_nsec) / ONE_SEC_NS);
 	}
 
 private:

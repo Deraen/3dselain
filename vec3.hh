@@ -27,6 +27,13 @@ struct Vec3 {
         return Vec3(b * x, b * y, b * z);
     }
 
+    Vec3& operator *=(const double b) {
+        x *= b;
+        y *= b;
+        z *= b;
+        return *this;
+    }
+
     double length() const {
         return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
     }

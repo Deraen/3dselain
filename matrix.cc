@@ -6,11 +6,6 @@ Matrix::Matrix(const unsigned int m, const unsigned int n) {
     init(m, n);
 }
 
-Matrix::Matrix(const double x, const double y, const double z) {
-    init(4, 1);
-    *this << x << y << z << 1;
-}
-
 Matrix::Matrix(const Matrix& b) {
     init(b.m_, b.n_, b.k_);
     for (unsigned int i = 0; i < m_ * n_; ++i) {
@@ -65,30 +60,17 @@ Matrix Matrix::operator*(const Matrix& b) const {
 }
 
 
-Matrix& Matrix::operator*=(const double& b) {
-    // rivit - molemmilla saman verran
-    for (unsigned int i = 0; i < m_ * n_; ++i) {
-        d_[i] *= b;
-    }
-    return *this;
-}
-
-Matrix& Matrix::operator+=(const Matrix& b) {
-    assertCoordinateMatrix();
-    set(X, get(X) + b.get(X));
-    set(Y, get(Y) + b.get(Y));
-    set(Z, get(Z) + b.get(Z));
-    return *this;
-}
+// Matrix& Matrix::operator*=(const double& b) {
+//     // rivit - molemmilla saman verran
+//     for (unsigned int i = 0; i < m_ * n_; ++i) {
+//         d_[i] *= b;
+//     }
+//     return *this;
+// }
 
 void Matrix::set(const unsigned int i, const unsigned int j, const double d) {
     assertRowColumn(i, j);
     d_[n_ * i + j] = d;
-}
-
-void Matrix::set(const Coordinate i, const double d) {
-    assertCoordinateMatrix();
-    set(i, 0, d);
 }
 
 double Matrix::get(const unsigned int i, const unsigned int j) const {
@@ -96,19 +78,28 @@ double Matrix::get(const unsigned int i, const unsigned int j) const {
     return d_[n_ * i + j];
 }
 
-double Matrix::get(const Coordinate i) const {
-    assertCoordinateMatrix();
-    return get(i, 0);
-}
+// void Matrix::unhomogenize() {
+//     assertCoordinateMatrix();
+//     set(X, get(X) / get(W));
+//     set(Y, get(Y) / get(W));
+//     set(Z, 0);
+//     set(W, 0);
+// }
 
-void Matrix::unhomogenize() {
-    assertCoordinateMatrix();
-    set(X, get(X) / get(W));
-    set(Y, get(Y) / get(W));
-    set(Z, 0);
-    set(W, 0);
-}
 
+//         1
+//         2
+//         3
+//         0 // turha
+// a b c d = a + 2*b + 3*c + 0*d
+// e f h i = e + 2*f + 3*h + 0*i
+// j k l m = j + 2*k + 3*l + 0*m
+Vec3 Matrix::operator *(Vec3 const& b) {
+    assert(m_ == 4 && n_ == 4 && "Fuu");
+    return Vec3(b.x * get(0, 0) + b.y * get(0, 1) + b.z * get(0, 2),
+               b.x * get(1, 0) + b.y * get(1, 1) + b.z * get(1, 2),
+               b.x * get(2, 0) + b.y * get(2, 1) + b.z * get(2, 2));
+}
 
 double* Matrix::data() {
     return d_;

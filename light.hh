@@ -24,8 +24,8 @@ public:
 
 protected:
     GLenum n;
-private:
     float* position;
+private:
     GLfloat* specular;
     GLfloat* ambient;
     GLfloat* diffuse;

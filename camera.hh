@@ -25,7 +25,7 @@ public:
     void set();
 
 private:
-    Matrix pos_;
+    Vec3 pos_;
     Matrix rot_;
 };
 

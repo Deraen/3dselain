@@ -25,24 +25,24 @@ Camera::Camera(const float x, const float y, const float z):
 }
 
 void Camera::move(float amount) {
-    Matrix delta(0.0, 0.0, 1.0);
-    delta = rot_ * delta;
-    delta *= amount;
-    pos_ += delta;
+    Vec3 suunta(0.0, 0.0, 1.0);
+    suunta = rot_ * suunta;
+    suunta *= amount;
+    pos_ += suunta;
 }
 
 void Camera::strafe(float amount) {
-    Matrix delta(1.0, 0.0, 0.0);
-    delta = rot_ * delta;
-    delta *= amount;
-    pos_ += delta;
+    Vec3 suunta(1.0, 0.0, 0.0);
+    suunta = rot_ * suunta;
+    suunta *= amount;
+    pos_ += suunta;
 }
 
 void Camera::moveHeight(float amount) {
-    Matrix delta(0.0, 1.0, 0.0);
-    delta = rot_ * delta;
-    delta *= amount;
-    pos_ += delta;
+    Vec3 suunta(0.0, 1.0, 0.0);
+    suunta = rot_ * suunta;
+    suunta *= amount;
+    pos_ += suunta;
 }
 
 void Camera::pitch(float amount) {
@@ -78,5 +78,5 @@ void Camera::set() {
 
     glMultMatrixd(rot_.data());
 
-    glTranslatef(-pos_.get(X), -pos_.get(Y), -pos_.get(Z));
+    glTranslatef(-pos_.x, -pos_.y, -pos_.z);
 }
