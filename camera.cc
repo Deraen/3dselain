@@ -80,3 +80,7 @@ void Camera::set() {
 
     glTranslatef(-pos_.x, -pos_.y, -pos_.z);
 }
+
+BoundingBox Camera::getBoundingbox() const {
+    return BoundingBox(pos_, Vec3(1.0, 1.0, 1.0));
+}

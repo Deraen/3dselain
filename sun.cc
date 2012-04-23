@@ -6,14 +6,11 @@
 Sun::Sun(): Light(GL_LIGHT0)
 {
 	setSpecular(1.0, 1.0, 1.0);
-    setAmbient(0.0, 0.0, 0.0);
+    setAmbient(0.5, 0.5, 0.5);
     setDiffuse(1.0, 1.0, 1.0);
 }
 
 void Sun::draw() {
-	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.01); // Valo heikkenee hieman etäisyyden funktiona
-	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.01);
-
 	glTranslatef(position[0], position[1], position[2]);
 	glutSolidSphere(2.0, 16, 16);
 
