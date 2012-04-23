@@ -43,6 +43,10 @@ void init() {
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
     glEnable(GL_DEPTH_TEST);  // Z-testi
 
+    // glEnable(GL_CULL_FACE); // Ei piirretä kolmioita kameran takana?
+    // glCullFace(GL_FRONT);
+    // glFrontFace(GL_CW);
+
     glEnable(GL_LIGHTING);
     glEnable(GL_COLOR_MATERIAL);
     glShadeModel(GL_SMOOTH);  // Sävytys: GL_FLAT / GL_SMOOTH
@@ -81,7 +85,8 @@ void display() {
 
     double secondsSinceStart = timer_.secondsSinceStart();
 
-    // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); // wireframe
+    if (keys_['<']) glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); // wireframe
+    else glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     for (unsigned int i = 0; i < objects_.size(); ++i) {
         glPushMatrix();
 
@@ -107,8 +112,20 @@ void resize(int newWidth, int newHeight) {
     windowHeight_ = newHeight;
 }
 
+bool checkCollisions() {
+    BoundingBox cameraBox = camera_.getBoundingbox();
+    for (unsigned int i = 0; i < objects_.size(); ++i) {
+        Drawable* obj = objects_.at(i);
+        if (obj->collision(cameraBox)) return true;
+    }
+    return false;
+}
+
 void handleKeys() {
     if (keys_['q']) exit(0); // hmmm
+
+    // törmäyksen tarkistus näin tyhmään paikkaan
+    Camera oldCamera = camera_;
 
     if (keys_['i']) camera_.move(-0.1);
     if (keys_['k']) camera_.move(0.1);
@@ -116,6 +133,12 @@ void handleKeys() {
     if (keys_['l']) camera_.strafe(0.1);
     if (keys_['y']) camera_.moveHeight(0.1);
     if (keys_['h']) camera_.moveHeight(-0.1);
+
+    if (checkCollisions()) {
+        // Jos törmäyksiä, kamera ei liikkunut
+        camera_ = oldCamera;
+    }
+
     if (keys_['w']) camera_.pitch(-1);
     if (keys_['s']) camera_.pitch(1);
     if (keys_['a']) camera_.heading(1);

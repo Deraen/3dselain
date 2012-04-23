@@ -6,18 +6,21 @@
 
 #include "solidmaterial.hh"
 #include "drawable.hh"
+#include "boundingbox.hh"
+#include "objreader.hh"
 
-class Cube : public Drawable {
+class Cube : public Drawable, public ObjReader {
 public:
 	Cube(float r, float g, float b, float x, float y, float z);
 
-	void draw() ;
+	void draw();
+	bool collision(BoundingBox& box) {
+		return box_.collision(box);
+	}
 
 private:
 	SolidMaterial material_;
-	float x_;
-	float y_;
-	float z_;
+	BoundingBox box_;
 };
 
 #endif

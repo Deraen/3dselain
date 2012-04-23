@@ -16,17 +16,19 @@ SolidMaterial::~SolidMaterial() {
 }
 
 void SolidMaterial::setSpecular(GLfloat r, GLfloat g, GLfloat b) {
-	if (specular_ == NULL) specular_ = new GLfloat[3];
+	if (specular_ == NULL) specular_ = new GLfloat[4];
 	specular_[0] = r;
 	specular_[1] = g;
 	specular_[2] = b;
+	specular_[3] = 1.0;
 }
 
 void SolidMaterial::setDiffuse(GLfloat r, GLfloat g, GLfloat b) {
-	if (diffuse_ == NULL) diffuse_ = new GLfloat[3];
+	if (diffuse_ == NULL) diffuse_ = new GLfloat[4];
 	diffuse_[0] = r;
 	diffuse_[1] = g;
 	diffuse_[2] = b;
+	diffuse_[3] = 1.0;
 }
 
 void SolidMaterial::setShinines(GLfloat s) {

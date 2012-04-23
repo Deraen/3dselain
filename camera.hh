@@ -7,6 +7,7 @@
 #include "common.hh"
 #include "vec3.hh"
 #include "matrix.hh"
+#include "boundingbox.hh"
 // #include "quaternion.hh"
 
 class Camera {
@@ -23,6 +24,8 @@ public:
     void heading(float amount);
 
     void set();
+
+    BoundingBox getBoundingbox() const;
 
 private:
     Vec3 pos_;
