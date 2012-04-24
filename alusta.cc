@@ -13,9 +13,9 @@ Alusta::Alusta():
 	ObjReader("alusta.obj"),
 	material_()
 {
-    material_.setShinines(8);
-    material_.setDiffuse(0.2, 1.0, 0.2);
-    material_.setSpecular(0.5, 1.0, 0.5);
+    material_.setShinines(1);
+    material_.setDiffuse(0.05, 0.4, 0.05);
+    material_.setSpecular(0.15, 0.3, 0.15);
     // material_.setEmission(0.0, 0.2, 0.1);
 
 }

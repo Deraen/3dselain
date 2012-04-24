@@ -108,7 +108,7 @@ void ObjReader::draw() {
 
 	glEnableClientState(GL_NORMAL_ARRAY);
 	// Normaalit structissa 3:n floatin jälkeen
-	glNormalPointer(GL_FLOAT, sizeof (Vertex), &vertexes_.front() + 3 * sizeof(float));
+	glNormalPointer(GL_FLOAT, sizeof (Vertex), &vertexes_.front().nx);
 
 	// glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	// Tekstuurikoordinaatit structissa 6:n floattia alun jälkeen
