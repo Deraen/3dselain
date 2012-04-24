@@ -11,9 +11,6 @@
 #include "boundingbox.hh"
 #include "objreader.hh"
 
-class Vertex;
-class Face;
-
 class Alusta : public Drawable, public ObjReader {
 public:
 	Alusta();

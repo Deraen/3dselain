@@ -41,8 +41,10 @@ public:
 
 protected:
 	std::vector<Vertex> vertexes_;
-	std::vector<Vec3> normals_; //temp
 	std::vector<Face> faces_;
+
+	GLuint vbo_;
+	GLuint vinx_;
 };
 
 #endif

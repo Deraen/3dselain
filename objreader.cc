@@ -8,6 +8,10 @@ using std::istringstream;
 using std::cout;
 using std::endl;
 
+#define GL_GLEXT_PROTOTYPES
+#include <GL/gl.h>
+#include <GL/glut.h>
+
 #include "objreader.hh"
 
 namespace {
@@ -19,7 +23,10 @@ namespace {
 	}
 }
 
-ObjReader::ObjReader(const char* filename) {
+ObjReader::ObjReader(const char* filename):
+	vbo_(0), vinx_(0) {
+	std::vector<Vec3> normals;
+
 	ifstream file(filename);
 
 	// XXX: ois ehk hyvä tarkistaa että eri asioita luetaan yhtä monta
@@ -44,7 +51,7 @@ ObjReader::ObjReader(const char* filename) {
 			lines >> x >> y >> z;
 			Vec3 a(x, y, z);
 			a.normalize();
-			normals_.push_back(a);
+			normals.push_back(a);
 		} else if (eka == "f") { // facet
 			// facet tiedostossa:
 			// f vertex/tekstuurit/normaali vertex/tekstuuri/normaali vertex/tekstuuri/normaali
@@ -57,7 +64,7 @@ ObjReader::ObjReader(const char* filename) {
 				lines >> face;
 				istringstream faces(face);
 
-				if (normals_.size() > 0) {
+				if (normals.size() > 0) {
 					string a;
 					getline(faces, a, '/');
 					unsigned int vertex = string2uint(a) - 1;
@@ -66,9 +73,9 @@ ObjReader::ObjReader(const char* filename) {
 					unsigned int normal = string2uint(a) - 1;
 
 					v[i] = vertex;
-					vertexes_.at(vertex).nx = normals_.at(normal).x;
-					vertexes_.at(vertex).ny = normals_.at(normal).y;
-					vertexes_.at(vertex).nz = normals_.at(normal).z;
+					vertexes_.at(vertex).nx = normals.at(normal).x;
+					vertexes_.at(vertex).ny = normals.at(normal).y;
+					vertexes_.at(vertex).nz = normals.at(normal).z;
 				} else {
 					cout << "NORMAALIT PUUTTUU" << endl;
 				}
@@ -84,41 +91,39 @@ ObjReader::ObjReader(const char* filename) {
 		}
 
 	}
+
+    glGenBuffers(1, &vbo_);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+    glBufferData(GL_ARRAY_BUFFER, vertexes_, GL_STATIC_DRAW); // overloaded vectorille: objreader.hh
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenBuffers(1, &vinx_);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vinx_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces_, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-    // glGenBuffers(1, &vbo_);
-    // glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    // // glBufferData(GL_ARRAY_BUFFER, sizeof (struct Vertex) * vertexCount_, vertexes_, GL_STATIC_DRAW);
-    // glBufferData(GL_ARRAY_BUFFER, vertexes_, GL_STATIC_DRAW);
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // glGenBuffers(1, &vinx_);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vinx_);
-    // // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof (struct Face) * faceCount_, faces_, GL_STATIC_DRAW);
-    // glBufferData(GL_ARRAY_BUFFER, faces_, GL_STATIC_DRAW);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
 void ObjReader::draw() {
-    // glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vinx_);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vinx_);
 	// glInterleavedArrays GL_N3F_V3F / GL_T2F_N3F_V3F
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, sizeof (Vertex), &vertexes_.front());
+	glVertexPointer(3, GL_FLOAT, sizeof (Vertex), NULL);
 
 	glEnableClientState(GL_NORMAL_ARRAY);
 	// Normaalit structissa 3:n floatin jälkeen
-	glNormalPointer(GL_FLOAT, sizeof (Vertex), &vertexes_.front().nx);
+	glNormalPointer(GL_FLOAT, sizeof (Vertex), (char*)NULL + 3 * sizeof(float));
 
 	// glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	// Tekstuurikoordinaatit structissa 6:n floattia alun jälkeen
 	// glTexCoordPointer(2, GL_FLOAT, sizeof (Vertex), (char*)NULL + 6 * sizeof(float));
 	// glTexCoordPointer(2, GL_FLOAT, sizeof (Vertex), &vertexes_.front() + 6 * sizeof(float));
 
-	glDrawElements(GL_TRIANGLES, 3 * faces_.size(), GL_UNSIGNED_INT, &faces_.front());
+	glDrawElements(GL_TRIANGLES, 3 * faces_.size(), GL_UNSIGNED_INT, NULL);//&faces_.front());
 
-	// glBindBuffer(GL_ARRAY_BUFFER, 0);
-	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	// glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
