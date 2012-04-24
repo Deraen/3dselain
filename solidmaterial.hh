@@ -15,6 +15,8 @@ public:
 
 	void setDiffuse(GLfloat r, GLfloat g, GLfloat b);
 
+	void setEmission(GLfloat r, GLfloat g, GLfloat b);
+
 	void setShinines(GLfloat s);
 
 	void use();
@@ -23,6 +25,7 @@ private:
 	GLfloat* specular_;
 	GLfloat* diffuse_;
 	GLfloat* shinines_;
+	GLfloat* emission_;
 
 };
 

@@ -48,7 +48,7 @@ void init() {
     // glFrontFace(GL_CW);
 
     glEnable(GL_LIGHTING);
-    glEnable(GL_COLOR_MATERIAL);
+    // glEnable(GL_COLOR_MATERIAL);
     glShadeModel(GL_SMOOTH);  // Sävytys: GL_FLAT / GL_SMOOTH
 
     objects_.push_back(new Sun);

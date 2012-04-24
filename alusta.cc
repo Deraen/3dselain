@@ -13,9 +13,10 @@ Alusta::Alusta():
 	ObjReader("alusta.obj"),
 	material_()
 {
-    material_.setShinines(128);
+    material_.setShinines(8);
     material_.setDiffuse(0.2, 1.0, 0.2);
     material_.setSpecular(0.5, 1.0, 0.5);
+    // material_.setEmission(0.0, 0.2, 0.1);
 
 }
 
@@ -24,8 +25,11 @@ Alusta::~Alusta()
 
 void Alusta::draw() {
 	material_.use();
-	// glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
 	// GLfloat ambMat[] = {0.2, 0.6, 0.2, 1.0};
+    // glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, ambMat);
+    // glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, ambMat);
+    // glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, ambMat);
+	// glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
 	// glColor4fv(ambMat);
 
 	// glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
