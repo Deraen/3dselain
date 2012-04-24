@@ -10,6 +10,7 @@
 Cube::Cube(float r, float g, float b, float x, float y, float z):
 	Drawable(),
     ObjReader("cube.obj"),
+    material_(),
     box_(Vec3(x, y, z), Vec3(5.0, 5.0, 5.0))
 {
     material_.setShinines(128);
@@ -18,8 +19,7 @@ Cube::Cube(float r, float g, float b, float x, float y, float z):
     // if (g == 1.0 || b == 1.0) r = 0.4;
     // if (r == 1.0 || g == 1.0) b = 0.4;
     material_.setSpecular(r, g, b);
-
-    // ObjReader lukija("cube.obj");
+    // material_.setEmission(1.0, 0.0, 0.0);
 }
 
 void Cube::draw() {

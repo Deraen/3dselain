@@ -42,7 +42,9 @@ ObjReader::ObjReader(const char* filename) {
 			// luetaan väliaikaisesti talteen tuonne (koska ennen facejen lukemista ei tiedetä mihin vertexiin liittyy...)
 			float x, y, z;
 			lines >> x >> y >> z;
-			normals_.push_back(Vec3(x, y, z));
+			Vec3 a(x, y, z);
+			a.normalize();
+			normals_.push_back(a);
 		} else if (eka == "f") { // facet
 			// facet tiedostossa:
 			// f vertex/tekstuurit/normaali vertex/tekstuuri/normaali vertex/tekstuuri/normaali

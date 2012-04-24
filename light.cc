@@ -14,8 +14,8 @@ Light::Light(GLenum n_):
 {
     glEnable(n);
 
-    // glLightf(n, GL_LINEAR_ATTENUATION, 0.1); // Valo heikkenee hieman etäisyyden funktiona
-    // glLightf(n, GL_QUADRATIC_ATTENUATION, 0.1);
+    // glLightf(n, GL_LINEAR_ATTENUATION, 0.01); // Valo heikkenee hieman etäisyyden funktiona
+    // glLightf(n, GL_QUADRATIC_ATTENUATION, 0.01);
 }
 
 Light::~Light() {
