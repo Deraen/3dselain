@@ -32,6 +32,7 @@ unsigned int windowWidth_, windowHeight_, rotX_, rotY_, oldX_, oldY_;
 #include "alusta.hh"
 #include "solidmaterial.hh"
 #include "cube.hh"
+// #include "huone.hh"
 void init() {
     for (unsigned int i = 0; i <= NUM_OF_KEYS; ++i) {
         keys_[i] = false;
@@ -43,9 +44,9 @@ void init() {
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
     glEnable(GL_DEPTH_TEST);  // Z-testi
 
-    // glEnable(GL_CULL_FACE); // Ei piirretä kolmioita kameran takana?
-    // glCullFace(GL_FRONT);
-    // glFrontFace(GL_CW);
+    glEnable(GL_CULL_FACE); // Ei piirretä kolmioita kameran takana?
+    glCullFace(GL_FRONT);
+    glFrontFace(GL_CW);
 
     glEnable(GL_LIGHTING);
     // glEnable(GL_COLOR_MATERIAL);
@@ -53,6 +54,7 @@ void init() {
 
     objects_.push_back(new Sun);
     objects_.push_back(new Alusta);
+    // objects_.push_back(new Huone);
     objects_.push_back(new Cube(1.0, 0.5, 0.5, 20, 0, 0));
     objects_.push_back(new Cube(0.5, 1.0, 0.5, 0, 20, 0));
     objects_.push_back(new Cube(0.5, 0.5, 1.0, 0, 0, 20));

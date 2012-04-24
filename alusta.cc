@@ -25,16 +25,6 @@ Alusta::~Alusta()
 
 void Alusta::draw() {
 	material_.use();
-	// GLfloat ambMat[] = {0.2, 0.6, 0.2, 1.0};
-    // glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, ambMat);
-    // glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, ambMat);
-    // glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, ambMat);
-	// glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
-	// glColor4fv(ambMat);
-
-	// glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
-	// GLfloat specMat[] = {0.4, 0.8, 0.4, 1.0};
-	// glColor4fv(specMat);
 
 	ObjReader::draw();
 }
