@@ -1,7 +1,7 @@
 # objektitiedostot
 SRC = main.cc alusta.cc light.cc \
  solidmaterial.cc cube.cc sun.cc camera.cc \
- matrix.cc objreader.cc
+ matrix.cc objreader.cc debug.cc
 OBJS = $(SRC:.cc=.o)
 
 CXX = LC_ALL=C g++
