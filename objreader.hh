@@ -28,10 +28,24 @@ struct Face {
 	{}
 };
 
-template <class T>
-inline void glBufferData(GLenum target, const std::vector<T>& v, GLenum usage) {
-	glBufferData(target, v.size() * sizeof(T), &v[0], usage);
-}
+struct VertexEstimate {
+	struct Faces {
+		// Yksi oikeastaan turha
+		Vertex* a;
+		Vertex* b;
+		Vertex* c;
+		Faces* next;
+	};
+
+	Vertex* point;
+	Faces* faces;
+
+	VertexEstimate(Vertex* point_):
+		point(point_),
+		faces(NULL)
+	{}
+	void appendFace(Vertex* a_, Vertex* b_, Vertex* c_);
+};
 
 class ObjReader {
 public:
@@ -42,6 +56,8 @@ public:
 protected:
 	std::vector<Vertex> vertexes_;
 	std::vector<Face> faces_;
+
+	VertexEstimate* tree_;
 
 	GLuint vbo_;
 	GLuint vinx_;

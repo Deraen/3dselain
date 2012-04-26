@@ -6,7 +6,7 @@
 #include "common.hh"
 
 struct Vec3 {
-    Vec3(double x_, double y_, double z_):
+    Vec3(float x_, float y_, float z_):
         x(x_), y(y_), z(z_) {}
 
     Vec3& operator +=(const Vec3& b) {
@@ -16,25 +16,32 @@ struct Vec3 {
         return *this;
     }
 
-    Vec3& operator /=(const double b) {
+    Vec3& operator /=(const float b) {
         x /= b;
         y /= b;
         z /= b;
         return *this;
     }
 
-    Vec3 operator *(const double b) {
+    Vec3 operator *(const float b) {
         return Vec3(b * x, b * y, b * z);
     }
 
-    Vec3& operator *=(const double b) {
+    // pistetulo
+    Vec3 operator *(const Vec3& b) {
+        return Vec3(y * b.z - z * b.y,
+                    z * b.x - x * b.z,
+                    x * b.y - y * b.x);
+    }
+
+    Vec3& operator *=(const float b) {
         x *= b;
         y *= b;
         z *= b;
         return *this;
     }
 
-    double length() const {
+    float length() const {
         return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
     }
 
@@ -44,9 +51,9 @@ struct Vec3 {
         z /= length();
     }
 
-    double x;
-    double y;
-    double z;
+    float x;
+    float y;
+    float z;
 };
 
 #endif
