@@ -5,6 +5,7 @@
 
 #include "drawable.hh"
 #include "animated.hh"
+#include "vec3.hh"
 
 class Light : public Drawable {
 public:
@@ -21,6 +22,8 @@ public:
     void setDiffuse(GLfloat r, GLfloat g, GLfloat b);
 
     void draw();
+
+    virtual bool collision(const Vec3& point, Vec3& movement);
 
 protected:
     GLenum n;

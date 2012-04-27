@@ -8,16 +8,14 @@
 
 #include "solidmaterial.hh"
 #include "drawable.hh"
-#include "boundingbox.hh"
 #include "objreader.hh"
 
-class Alusta : public Drawable, public ObjReader {
+class Alusta : public ObjReader {
 public:
 	Alusta();
 	~Alusta();
 
 	void draw();
-	bool collision(BoundingBox& box) { return false; }
 private:
 
 	SolidMaterial material_;

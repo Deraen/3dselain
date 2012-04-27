@@ -1,3 +1,10 @@
+/*
+-gldebug käynnistysvipu saattaa auttaa opengl virheiden etsinnässä.
+
+Vaadittujen painikkeiden lisäksi:
+'<' - Wireframe päälle/pois.
+*/
+
 #include <iostream>
 #include <vector>
 using std::vector;
@@ -8,31 +15,30 @@ using std::vector;
 #include <GL/glut.h>
 
 #include "camera.hh"
-#include "timer.hh"
 #include "drawable.hh"
 
 // --- VAKIOT ---
 const int DEF_WINDOW_WIDTH = 800;
 const int DEF_WINDOW_HEIGHT = 600;
 const unsigned int FPS = 60;
-const unsigned int NS_PER_FRAME = pow(10, 9) / FPS;
+const unsigned int MS_PER_FRAME = pow(10, 3) / FPS;
 const unsigned int NUM_OF_KEYS = sizeof(char);
 const unsigned int NUM_OF_BUTTONS = 3;
 
 // --- GLOBAALIT ---
 Camera camera_(0.0, 10.0, 0.0);
-Timer timer_;
 bool keys_[256];
 bool buttons_[3];
 vector<Drawable*> objects_;
 unsigned int windowWidth_, windowHeight_, rotX_, rotY_, oldX_, oldY_;
+bool wireframe_ = false;
+double secondsSinceStart_ = 0.0; // hyvin epätarkka arvio (glutTimer...)
 
 // Eri objekteja varten
 #include "sun.hh"
 #include "alusta.hh"
 #include "solidmaterial.hh"
 #include "cube.hh"
-// #include "huone.hh"
 void init() {
     for (unsigned int i = 0; i <= NUM_OF_KEYS; ++i) {
         keys_[i] = false;
@@ -54,7 +60,6 @@ void init() {
 
     objects_.push_back(new Sun);
     objects_.push_back(new Alusta);
-    // objects_.push_back(new Huone);
     objects_.push_back(new Cube(1.0, 0.5, 0.5, 20, 0, 0));
     objects_.push_back(new Cube(0.5, 1.0, 0.5, 0, 20, 0));
     objects_.push_back(new Cube(0.5, 0.5, 1.0, 0, 0, 20));
@@ -67,6 +72,7 @@ void destroy() {
 }
 
 void handleKey(unsigned char key, int, int) {
+    if (key == '<') wireframe_ = !wireframe_;
     keys_[key] = true;
 }
 
@@ -85,9 +91,7 @@ void display() {
 
     camera_.set();
 
-    double secondsSinceStart = timer_.secondsSinceStart();
-
-    if (keys_['<']) glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); // wireframe
+    if (wireframe_) glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); // wireframe
     else glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     for (unsigned int i = 0; i < objects_.size(); ++i) {
         glPushMatrix();
@@ -97,7 +101,7 @@ void display() {
         // Jos piirrettävä toteuttaa Animated luokan niin kutsutaan sen
         // animate funktiota joka esim. siirtää sen sijaintia
         Animated* animate = dynamic_cast<Animated*>(obj);
-        if (animate != NULL) animate->animate(secondsSinceStart);
+        if (animate != NULL) animate->animate(secondsSinceStart_);
 
         obj->draw();
 
@@ -114,32 +118,28 @@ void resize(int newWidth, int newHeight) {
     windowHeight_ = newHeight;
 }
 
-bool checkCollisions() {
-    BoundingBox cameraBox = camera_.getBoundingbox();
-    for (unsigned int i = 0; i < objects_.size(); ++i) {
-        Drawable* obj = objects_.at(i);
-        if (obj->collision(cameraBox)) return true;
-    }
-    return false;
-}
-
 void handleKeys() {
     if (keys_['q']) exit(0); // hmmm
 
     // törmäyksen tarkistus näin tyhmään paikkaan
-    Camera oldCamera = camera_;
+    // Camera oldCamera = camera_;
 
+    // Alla olevat siirrot tallentuvat kameralle
     if (keys_['i']) camera_.move(-0.1);
     if (keys_['k']) camera_.move(0.1);
     if (keys_['j']) camera_.strafe(-0.1);
     if (keys_['l']) camera_.strafe(0.1);
     if (keys_['y']) camera_.moveHeight(0.1);
     if (keys_['h']) camera_.moveHeight(-0.1);
-
-    if (checkCollisions()) {
-        // Jos törmäyksiä, kamera ei liikkunut
-        camera_ = oldCamera;
+    // Yhteenlasketut siirrot
+    Vec3 movement = camera_.getMovement();
+    // Ollaanko törmäämässä johonkin?
+    for (unsigned int i = 0; i < objects_.size(); ++i) {
+        objects_.at(i)->collision(camera_.getPos(), movement);
     }
+
+    // Suoritetaan muutettu siirto
+    camera_.applyMovement(movement);
 
     if (keys_['w']) camera_.pitch(-1);
     if (keys_['s']) camera_.pitch(1);
@@ -185,15 +185,13 @@ void motion(int x, int y) {
     }
 }
 
-void animate() {
-    // "pääsilmukka"
-    // ei tehdä mitään jossei edellisestä kulunut tarpeeksi aikaa
-    if (!timer_.ellapsed(NS_PER_FRAME)) {
-        return;
-    }
-
+void animate(int a = 0) {
     handleKeys();
     glutPostRedisplay();
+
+    secondsSinceStart_ += static_cast<double>(MS_PER_FRAME) / pow(10, 3);
+
+    glutTimerFunc(MS_PER_FRAME, animate, 0);
 }
 
 int main(int argc, char *argv[]) {
@@ -215,7 +213,9 @@ int main(int argc, char *argv[]) {
     glutMouseFunc(mouse);
     glutMotionFunc(motion);
     glutReshapeFunc(resize);
-    glutIdleFunc(animate);
+    // glutIdleFunc(animate);
+    animate();
+
     glutMainLoop();
 
     destroy();

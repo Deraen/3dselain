@@ -13,6 +13,7 @@ using std::endl;
 
 Camera::Camera(const float x, const float y, const float z):
     pos_(x, y, z),
+    delta_(0.0, 0.0, 0.0),
     rot_(4, 4)
 {
     rot_ << 1 << 0 << 0 << 0
@@ -24,25 +25,34 @@ Camera::Camera(const float x, const float y, const float z):
     pitch(-25);
 }
 
+void Camera::applyMovement(const Vec3& move) {
+    pos_ += move;
+    delta_ = Vec3(0.0, 0.0, 0.0);
+}
+
+Vec3 Camera::getMovement() const { return delta_; }
+
+Vec3 Camera::getPos() const { return pos_; }
+
 void Camera::move(float amount) {
     Vec3 suunta(0.0, 0.0, 1.0);
     suunta = rot_ * suunta;
     suunta *= amount;
-    pos_ += suunta;
+    delta_ += suunta;
 }
 
 void Camera::strafe(float amount) {
     Vec3 suunta(1.0, 0.0, 0.0);
     suunta = rot_ * suunta;
     suunta *= amount;
-    pos_ += suunta;
+    delta_ += suunta;
 }
 
 void Camera::moveHeight(float amount) {
     Vec3 suunta(0.0, 1.0, 0.0);
     suunta = rot_ * suunta;
     suunta *= amount;
-    pos_ += suunta;
+    delta_ += suunta;
 }
 
 void Camera::pitch(float amount) {
@@ -79,8 +89,4 @@ void Camera::set() {
     glMultMatrixd(rot_.data());
 
     glTranslatef(-pos_.x, -pos_.y, -pos_.z);
-}
-
-BoundingBox Camera::getBoundingbox() const {
-    return BoundingBox(pos_, Vec3(1.0, 1.0, 1.0));
 }
