@@ -5,7 +5,6 @@
 #include <GL/glut.h>
 
 #include "alusta.hh"
-// #include "alusta.h" //data
 #include "material.hh"
 #include "objreader.hh"
 
@@ -28,4 +27,3 @@ void Alusta::draw() {
 
 	ObjReader::draw();
 }
-

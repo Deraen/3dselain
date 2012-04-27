@@ -1,14 +1,14 @@
 #ifndef DRAWABLE_HH
 #define DRAWABLE_HH
 
-class BoundingBox;
+#include "vec3.hh"
 
 class Drawable {
 public:
 	Drawable() {};
 	virtual void draw() = 0;
 	virtual ~Drawable() {}
-	virtual bool collision(BoundingBox& box) = 0;
+	virtual bool collision(const Vec3& point, Vec3& movement) = 0;
 
 private:
 };
