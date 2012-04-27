@@ -73,6 +73,7 @@ void destroy() {
 
 void handleKey(unsigned char key, int, int) {
     if (key == '<') wireframe_ = !wireframe_;
+    if (key == 'z') ObjReader::drawNormals_ = !ObjReader::drawNormals_;
     keys_[key] = true;
 }
 
@@ -137,9 +138,10 @@ void handleKeys() {
     if (keys_[' ']) movement += Vec3(0.0, 0.2, 0.0);
     // movement += Vec3(0.0, -0.1, 0.0);
     // Ollaanko törmäämässä johonkin?
-    for (unsigned int i = 0; i < objects_.size(); ++i) {
-        objects_.at(i)->collision(camera_.getPos(), movement);
-    }
+    // for (unsigned int i = 0; i < objects_.size(); ++i) {
+    //     objects_.at(i)->collision(camera_.getPos(), movement);
+    // }
+    objects_.at(1)->collision(camera_.getPos(), movement);
 
     // Suoritetaan muutettu siirto
     camera_.applyMovement(movement);

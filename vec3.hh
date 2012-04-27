@@ -24,6 +24,12 @@ struct Vec3 {
         return *this;
     }
 
+    Vec3 operator /(const float b) const {
+        return Vec3(x / b,
+                    y / b,
+                    z / b);
+    }
+
     Vec3 operator +(const Vec3& b) const {
         return Vec3(x + b.x,
                     y + b.y,
