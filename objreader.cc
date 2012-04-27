@@ -22,6 +22,8 @@ using std::partial_sort;
 #include "objreader.hh"
 #include "debug.hh"
 
+bool ObjReader::drawNormals_ = false;
+
 namespace {
     unsigned int string2uint(const string& c) {
         istringstream a(c);
@@ -34,14 +36,19 @@ namespace {
 
 /*
 Olettaa että tiedostossa on vain yksi objekti.
+
+Toteutin 3 ulotteisen kdtree:n vertexeille mutta
+se ei jonkun takia palauttanut lähintä pistettä kovin
+luotettavasti. Kaikkien pintojenkin läpikäynti tuntuu olevan kohtuu nopeata.
 */
 ObjReader::ObjReader(const char* filename):
     vbo_(0),
     vinx_(0),
     faceCount_(0),
-    vertexes_(),
-    tree_(NULL),
-    best_(NULL),
+    faces_(),
+    // vertexes_(),
+    // tree_(NULL),
+    // best_(NULL),
     min_(0.0, 0.0, 0.0),
     max_(0.0, 0.0, 0.0)
     {
@@ -157,88 +164,90 @@ ObjReader::ObjReader(const char* filename):
     // joilla vähän enempi ominaisuuksia.
     // vanhat ovat turhia tämän jälkeen (luettu jo vbo muistiin joten ei tarvita alkup
     // tietoja piirtämiseen)
+    vector<Vec3*> vertexes;
     for (unsigned int i = 0; i < glVertexes.size(); ++i) {
         GLVertex v = glVertexes.at(i);
-        vertexes_.push_back(new Vertex(v.x, v.y, v.z));
+        vertexes.push_back(new Vec3(v.x, v.y, v.z));
     }
 
     for (unsigned int i = 0; i < glFaces.size(); ++i) {
-        Vertex* a = vertexes_.at(glFaces.at(i).a);
-        Vertex* b = vertexes_.at(glFaces.at(i).b);
-        Vertex* c = vertexes_.at(glFaces.at(i).c);
-        vertexes_.at(glFaces.at(i).a)->appendFace(a, b, c);
-        vertexes_.at(glFaces.at(i).b)->appendFace(a, b, c);
-        vertexes_.at(glFaces.at(i).c)->appendFace(a, b, c);
+        Vec3* a = vertexes.at(glFaces.at(i).a);
+        Vec3* b = vertexes.at(glFaces.at(i).b);
+        Vec3* c = vertexes.at(glFaces.at(i).c);
+        faces_.push_back(new Face(a, b, c));
+        // vertexes.at(glFaces.at(i).a)->appendFace(a, b, c);
+        // vertexes.at(glFaces.at(i).b)->appendFace(a, b, c);
+        // vertexes.at(glFaces.at(i).c)->appendFace(a, b, c);
     }
 
-    tree_ = kdtree(0, vertexes_.size() - 1, 0);
+    // tree_ = kdtree(0, vertexes_.size() - 1, 0);
 }
 
-Vertex* ObjReader::kdtree(unsigned int start,
-                          unsigned int end,
-                          unsigned int depth) {
-    if (end < start) {
-        return NULL;
-    }
+// Vertex* ObjReader::kdtree(unsigned int start,
+//                           unsigned int end,
+//                           unsigned int depth) {
+//     if (end < start) {
+//         return NULL;
+//     }
 
-    if (start == end) return vertexes_.at(start);
+//     if (start == end) return vertexes_.at(start);
 
-    // Ollaan kiinnostuttu mediaanista jonkin akselin suhteen
-    unsigned int median = start + (end - start) / 2;
+//     // Ollaan kiinnostuttu mediaanista jonkin akselin suhteen
+//     unsigned int median = start + (end - start) / 2;
 
-    // Aika nopea tää oli kyll vaikka järjestäis sort:lla koko homman
-    partial_sort(vertexes_.begin() + start,
-                 vertexes_.begin() + median + 1, // hmm tarviikohan tuota +1?
-                 vertexes_.begin() + end,
-                 VertexCompare(static_cast<VertexCompare::SortType>(depth % 3)));
+//     // Aika nopea tää oli kyll vaikka järjestäis sort:lla koko homman
+//     partial_sort(vertexes_.begin() + start,
+//                  vertexes_.begin() + median + 1, // hmm tarviikohan tuota +1?
+//                  vertexes_.begin() + end,
+//                  VertexCompare(static_cast<VertexCompare::SortType>(depth % 3)));
 
-    Vertex* uusi = vertexes_.at(median);
+//     Vertex* uusi = vertexes_.at(median);
 
-    uusi->lesser = kdtree(start, median - 1, depth + 1);
-    uusi->greater = kdtree(median + 1, end, depth + 1);
+//     uusi->lesser = kdtree(start, median - 1, depth + 1);
+//     uusi->greater = kdtree(median + 1, end, depth + 1);
 
-    return uusi;
-}
+//     return uusi;
+// }
 
-void ObjReader::travel(Vertex* i, const Vec3& point, Vertex*& best, float& bestWeight, unsigned int depth) {
-    if (i == NULL) return;
+// void ObjReader::travel(Vertex* i, const Vec3& point, Vertex*& best, float& bestWeight, unsigned int depth) {
+//     if (i == NULL) return;
 
-    Vertex* next = NULL;
-    Vertex* other = NULL;
-    if ((depth % 3 == 0 && point.x < i->x)
-     || (depth % 3 == 1 && point.y < i->y)
-     || (depth % 3 == 2 && point.z < i->z)) {
-        next = i->lesser;
-        other = i->greater;
-    } else {
-        next = i->greater;
-        other = i->lesser;
-    }
-    if (next != NULL) travel(next, point, best, bestWeight, depth + 1);
+//     Vertex* next = NULL;
+//     Vertex* other = NULL;
+//     if ((depth % 3 == 0 && point.x < i->x)
+//      || (depth % 3 == 1 && point.y < i->y)
+//      || (depth % 3 == 2 && point.z < i->z)) {
+//         next = i->lesser;
+//         other = i->greater;
+//     } else {
+//         next = i->greater;
+//         other = i->lesser;
+//     }
+//     if (next != NULL) travel(next, point, best, bestWeight, depth + 1);
 
-    // vika
-    float weight = i->weightBetween(point);
-    if (best == NULL || weight < bestWeight) {
-        best = i;
-        bestWeight = weight;
-    }
+//     // vika
+//     float weight = i->weightBetween(point);
+//     if (best == NULL || weight < bestWeight) {
+//         best = i;
+//         bestWeight = weight;
+//     }
 
-    // pitäisikö tarkistaa myös toinen haara?
-    if (other != NULL) {
-        weight = other->weightBetween(point);
-        if (weight < bestWeight) {
-            travel(other, point, best, bestWeight, depth + 1);
-        }
-    }
-}
+//     // pitäisikö tarkistaa myös toinen haara?
+//     if (other != NULL) {
+//         weight = other->weightBetween(point);
+//         if (weight < bestWeight) {
+//             travel(other, point, best, bestWeight, depth + 1);
+//         }
+//     }
+// }
 
-Vertex* ObjReader::nearestPoint(const Vec3& point)
-{
-    float bestWeight = 0;
-    best_ = NULL;
-    travel(tree_, point, best_, bestWeight, 0);
-    return best_;
-}
+// Vertex* ObjReader::nearestPoint(const Vec3& point)
+// {
+//     float bestWeight = 0;
+//     best_ = NULL;
+//     travel(tree_, point, best_, bestWeight, 0);
+//     return best_;
+// }
 
 void ObjReader::draw() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
@@ -265,15 +274,37 @@ void ObjReader::draw() {
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
 
-    if (best_ != NULL) {
-        GLfloat diffuse[] = {1.0, 0.0, 0.0, 1.0};
+    // if (best_ != NULL) {
+    //     GLfloat diffuse[] = {1.0, 0.0, 0.0, 1.0};
+    //     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
+    //     glPushMatrix();
+    //     glTranslatef(best_->x,
+    //                  best_->y,
+    //                  best_->z);
+    //     glutSolidSphere(0.05, 8, 8);
+    //     glPopMatrix();
+    // }
+
+
+    if (drawNormals_) {
+        glBegin(GL_LINES);
+
+        GLfloat diffuse[] = {1.0, 1.0, 1.0, 1.0};
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
-        glPushMatrix();
-        glTranslatef(best_->x,
-                     best_->y,
-                     best_->z);
-        glutSolidSphere(0.05, 8, 8);
-        glPopMatrix();
+        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, diffuse);
+        // glBegin(GL_POINTS);
+        for (unsigned int i = 0; i < faces_.size(); ++i) {
+            Face* f = faces_.at(i);
+            Vec3 a(f->a->x / 3 + f->b->x / 3 + f->c->x / 3,
+                   f->a->y / 3 + f->b->y / 3 + f->c->y / 3,
+                   f->a->z / 3 + f->b->z / 3 + f->c->z / 3);
+            glVertex3f(a.x, a.y, a.z);
+            Vec3 b(a + f->normal);
+            glVertex3f(b.x, b.y, b.z);
+        }
+        glEnd();
+        GLfloat fuu[] = {0.0, 0.0, 0.0, 0.0};
+        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, fuu);
     }
 }
 
@@ -285,39 +316,41 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement) {
 
     // Vertex* v = nearestPoint(point);
 
-    for (unsigned int i = 0; i < vertexes_.size(); ++i) {
+    // for (unsigned int i = 0; i < vertexes_.size(); ++i) {
 
-        Vertex* v = vertexes_.at(i);
-        Vertex::Face* face = v->faces;
-        while (face != NULL) {
-            // tähän tarkistus että törmääkö pintaan
-            // kolmion boundingbox
-            Vec3 p(point);
-            Vec3 q(point + movement);
-            // float dp = p.distanceToPlane(*face);
-            // float dq = p.distanceToPlane(*face);
+    //     Vertex* v = vertexes_.at(i);
+    //     Vertex::Face* face = v->faces;
+    //     while (face != NULL) {
+    for (unsigned int i = 0; i < faces_.size(); ++i) {
+        Face* face = faces_.at(i);
+        // tähän tarkistus että törmääkö pintaan
+        // kolmion boundingbox
+        // Vec3 p(point);
+        // Vec3 q(point + movement);
+        // float dp = p.distanceToPlane(*face);
+        // float dq = p.distanceToPlane(*face);
 
-            // float t = - (face->normal * p )
+        // float t = - (face->normal * p )
 
-            float d = (point.dot(face->normal) - Vec3(face->a->x, face->a->y, face->a->z).dot(face->normal)) / face->normal.length();
-            if (d < 1) {
-            // jos normaali osuu jossain pisteessä tasoon
-            // float npq = face->normal.dot(movement);
-            // if (npq != 0) {
-                // XXX: tarkemmat tarkastukset
-                // float t = - (face->normal.dot(point)) / npq;
-                // if (t >= 0.0 && t <= 1.0) {
-                    Debug::start() << "Törmätään tasoon (" << *(face->a) << ") / (" << *(face->b) << ") / (" << *(face->b) << ")" << Debug::end();
-                    movement += face->normal;
-                    // return collision(point, movement);
-                    return true;
-                // }
-            // }
+        // float d = (point.dot(face->normal) - Vec3(face->a->x, face->a->y, face->a->z).dot(face->normal)) / face->normal.length();
+        // if (d < 1) {
+        // jos normaali osuu jossain pisteessä tasoon
+        float npq = face->normal.dot(movement);
+        if (npq != 0) {
+            // XXX: tarkemmat tarkastukset
+            float t = - (face->normal.dot(point)) / npq;
+            if (t >= 0.0 && t <= 1.0) {
+                Debug::start() << "Törmätään tasoon (" << *(face->a) << ") / (" << *(face->b) << ") / (" << *(face->c) << ")" << Debug::end();
+                movement += face->normal * 0.1;
+                // return collision(point, movement);
+                return true;
             }
-            face = face->next;
+        // }
         }
-
+        face = face->next;
     }
+
+    // }
 
     Debug::start() << "Ei törmätty mihinkään" << Debug::end();
     return false;
