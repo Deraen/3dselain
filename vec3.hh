@@ -41,10 +41,14 @@ struct Vec3 {
     }
 
     // pistetulo
-    Vec3 operator *(const Vec3& b) const {
+    Vec3 cross(const Vec3& b) const {
         return Vec3(y * b.z - z * b.y,
                     z * b.x - x * b.z,
                     x * b.y - y * b.x);
+    }
+
+    float dot(const Vec3& b) const {
+        return x * b.x + y * b.y + z * b.z;
     }
 
     Vec3& operator *=(const float b) {
