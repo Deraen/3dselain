@@ -35,5 +35,7 @@ void Cube::draw() {
 
 bool Cube::collision(const Vec3 &point, Vec3 &movement) {
     // XXX: collision olettaa että kappale on maailma koordinaateissa
-    return file->collision(point, movement);
+    return file->collision(Vec3(point.x - pos_.x,
+                                point.y - pos_.y,
+                                point.z - pos_.z), movement);
 }

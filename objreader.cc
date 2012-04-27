@@ -46,9 +46,9 @@ ObjReader::ObjReader(const char* filename):
     max_(0.0, 0.0, 0.0)
     {
 
-    // vector<GLVertex> glVertexes;
+    vector<GLVertex> glVertexes;
     vector<Vec3> normals;
-    // vector<GLFace> glFaces;
+    vector<GLFace> glFaces;
 
     ifstream file(filename);
 
@@ -112,7 +112,6 @@ ObjReader::ObjReader(const char* filename):
                 }
             }
 
-            // Debug::start()[3] << "Pinta " << v[0] << ", " << v[1] << ", " << v[2] << Debug::end();
             glFaces.push_back(GLFace(v[0], v[1], v[2]));
         } else if (eka == "s") { // shading
         } else if (eka == "o") { // objekti
@@ -130,6 +129,7 @@ ObjReader::ObjReader(const char* filename):
     Debug::start()[0] << "Luettiin " << glFaces.size() << " facea, sizeof GLFace: " << sizeof(GLFace) << Debug::end();
 
     // Talletetaan glVertexit ja glFacet VBO:hon.
+    // glGenVertexArrays(1, &vbo_); // XXX oiskoha paree näitä käyttäen
     glGenBuffers(1, &vbo_);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
     glBufferData(GL_ARRAY_BUFFER, glVertexes.size() * sizeof(GLVertex), &glVertexes.front(), GL_STATIC_DRAW);
@@ -142,10 +142,6 @@ ObjReader::ObjReader(const char* filename):
     glGenBuffers(1, &vinx_);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vinx_);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, glFaces.size() * sizeof(GLFace), &glFaces.front(), GL_STATIC_DRAW);
-
-    GLFace* temp = NULL;
-    glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, faceCount_ * sizeof(GLFace), temp);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     // ainut mität tarvitaan jatkossa piirtoon
     faceCount_ = glFaces.size();
@@ -250,11 +246,11 @@ void ObjReader::draw() {
     // glInterleavedArrays GL_N3F_V3F / GL_T2F_N3F_V3F
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, sizeof (Vertex), NULL);
+    glVertexPointer(3, GL_FLOAT, sizeof (GLVertex), NULL);
 
     glEnableClientState(GL_NORMAL_ARRAY);
     // Normaalit structissa 3:n floatin jälkeen
-    glNormalPointer(GL_FLOAT, sizeof (Vertex), (char*)NULL + 3 * sizeof(float));
+    glNormalPointer(GL_FLOAT, sizeof (GLVertex), (char*)NULL + 3 * sizeof(float));
 
     // glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     // Tekstuurikoordinaatit structissa 6:n floattia alun jälkeen
@@ -287,14 +283,42 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement) {
         return false;
     }
 
-    Vertex* v = nearestPoint(point);
+    // Vertex* v = nearestPoint(point);
 
-    Vertex::Face* face = v->faces;
-    while (face != NULL) {
-        // tähän tarkistus että törmääkö pintaan
-        movement += face->normal * 0.1;
-        return true;
+    for (unsigned int i = 0; i < vertexes_.size(); ++i) {
+
+        Vertex* v = vertexes_.at(i);
+        Vertex::Face* face = v->faces;
+        while (face != NULL) {
+            // tähän tarkistus että törmääkö pintaan
+            // kolmion boundingbox
+            Vec3 p(point);
+            Vec3 q(point + movement);
+            // float dp = p.distanceToPlane(*face);
+            // float dq = p.distanceToPlane(*face);
+
+            // float t = - (face->normal * p )
+
+            float d = (point.dot(face->normal) - Vec3(face->a->x, face->a->y, face->a->z).dot(face->normal)) / face->normal.length();
+            if (d < 1) {
+            // jos normaali osuu jossain pisteessä tasoon
+            // float npq = face->normal.dot(movement);
+            // if (npq != 0) {
+                // XXX: tarkemmat tarkastukset
+                // float t = - (face->normal.dot(point)) / npq;
+                // if (t >= 0.0 && t <= 1.0) {
+                    Debug::start() << "Törmätään tasoon (" << *(face->a) << ") / (" << *(face->b) << ") / (" << *(face->b) << ")" << Debug::end();
+                    movement += face->normal;
+                    // return collision(point, movement);
+                    return true;
+                // }
+            // }
+            }
+            face = face->next;
+        }
+
     }
 
+    Debug::start() << "Ei törmätty mihinkään" << Debug::end();
     return false;
 }

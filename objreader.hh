@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <cmath>
 
 #include <GL/gl.h>
 
@@ -11,17 +12,45 @@
 #include "debug.hh"
 #include "drawable.hh"
 
+struct GLVertex {
+    float x, y, z;
+    float nx, ny, nz;
+
+    GLVertex(float x_, float y_, float z_):
+        x(x_), y(y_), z(z_),
+        nx(0.0), ny(0.0), nz(0.0)
+    {}
+};
+
+struct GLFace {
+    unsigned int a;
+    unsigned int b;
+    unsigned int c;
+
+    GLFace(unsigned int a_, unsigned int b_, unsigned int c_):
+        a(a_), b(b_), c(c_)
+    {}
+};
+
 struct Vertex {
     struct Face {
         Vertex* a;
         Vertex* b;
         Vertex* c;
         Vec3 normal;
+        Vec3 min;
+        Vec3 max;
         Face* next;
 
         Face(Vertex* a_, Vertex* b_, Vertex* c_):
             a(a_), b(b_), c(c_),
-            normal((*b - *a) * (*c - *a)),
+            normal((*b - *a).cross((*c - *a))),
+            min(std::min(a->x, std::min(b->x, c->x)),
+                std::min(a->y, std::min(b->y, c->y)),
+                std::min(a->z, std::min(b->z, c->z))),
+            max(std::max(a->x, std::max(b->x, c->x)),
+                std::max(a->y, std::max(b->y, c->y)),
+                std::max(a->z, std::max(b->z, c->z))),
             next(NULL)
         {}
     };
@@ -57,6 +86,10 @@ struct Vertex {
     }
     float weightBetween(const Vec3& point) {
         return pow(point.x - x, 2) + pow(point.y - y, 2) + pow(point.z - z, 2);
+    }
+    friend Debug& operator<<(Debug& debug, const Vertex& b) {
+        debug << b.x << ", " << b.y << ", " << b.z;
+        return debug;
     }
 };
 
@@ -112,30 +145,6 @@ private:
     // Bounding box
     Vec3 min_;
     Vec3 max_;
-
-    struct GLVertex {
-        float x, y, z;
-        float nx, ny, nz;
-
-        GLVertex(float x_, float y_, float z_):
-            x(x_), y(y_), z(z_),
-            nx(0.0), ny(0.0), nz(0.0)
-        {}
-    };
-
-    struct GLFace {
-        unsigned int a;
-        unsigned int b;
-        unsigned int c;
-
-        GLFace(unsigned int a_, unsigned int b_, unsigned int c_):
-            a(a_), b(b_), c(c_)
-        {}
-    };
-
-
-        std::vector<GLVertex> glVertexes;
-        std::vector<GLFace> glFaces;
 };
 
 #endif
