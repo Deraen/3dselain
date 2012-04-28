@@ -23,6 +23,7 @@ using std::partial_sort;
 #include "debug.hh"
 
 bool ObjReader::drawNormals_ = false;
+bool ObjReader::drawFaceCenters_ = false;
 
 namespace {
     unsigned int string2uint(const string& c) {
@@ -286,8 +287,9 @@ void ObjReader::draw() {
     // }
 
 
-    if (drawNormals_) {
-        glBegin(GL_LINES);
+    if (drawFaceCenters_ || drawNormals_) {
+        if (drawNormals_) glBegin(GL_LINES);
+        else              glBegin(GL_POINTS);
 
         GLfloat diffuse[] = {1.0, 1.0, 1.0, 1.0};
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
@@ -299,8 +301,11 @@ void ObjReader::draw() {
                    f->a->y / 3 + f->b->y / 3 + f->c->y / 3,
                    f->a->z / 3 + f->b->z / 3 + f->c->z / 3);
             glVertex3f(a.x, a.y, a.z);
-            Vec3 b(a + f->normal);
-            glVertex3f(b.x, b.y, b.z);
+
+            if (drawNormals_) {
+                Vec3 b(a + f->normal);
+                glVertex3f(b.x, b.y, b.z);
+            }
         }
         glEnd();
         GLfloat fuu[] = {0.0, 0.0, 0.0, 0.0};
