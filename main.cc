@@ -3,6 +3,8 @@
 
 Vaadittujen painikkeiden lisäksi:
 '<' - Wireframe päälle/pois.
+'Z' - Kolmioiden normaalien piirto.
+'X' - Kolmioiden keskipisteiden piirto.
 */
 
 #include <iostream>
@@ -74,6 +76,7 @@ void destroy() {
 void handleKey(unsigned char key, int, int) {
     if (key == '<') wireframe_ = !wireframe_;
     if (key == 'z') ObjReader::drawNormals_ = !ObjReader::drawNormals_;
+    if (key == 'x') ObjReader::drawFaceCenters_ = !ObjReader::drawFaceCenters_;
     keys_[key] = true;
 }
 
