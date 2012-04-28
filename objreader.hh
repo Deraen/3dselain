@@ -97,19 +97,19 @@ struct Face {
     Vec3* b;
     Vec3* c;
     Vec3 normal;
-    Vec3 min;
-    Vec3 max;
+    // Vec3 min;
+    // Vec3 max;
     Face* next;
 
     Face(Vec3* a_, Vec3* b_, Vec3* c_):
         a(a_), b(b_), c(c_),
         normal((*b - *a).cross((*c - *a)).normalize()),
-        min(std::min(a->x, std::min(b->x, c->x)),
-            std::min(a->y, std::min(b->y, c->y)),
-            std::min(a->z, std::min(b->z, c->z))),
-        max(std::max(a->x, std::max(b->x, c->x)),
-            std::max(a->y, std::max(b->y, c->y)),
-            std::max(a->z, std::max(b->z, c->z))),
+        // min(std::min(a->x, std::min(b->x, c->x)),
+        //     std::min(a->y, std::min(b->y, c->y)),
+        //     std::min(a->z, std::min(b->z, c->z))),
+        // max(std::max(a->x, std::max(b->x, c->x)),
+        //     std::max(a->y, std::max(b->y, c->y)),
+        //     std::max(a->z, std::max(b->z, c->z))),
         next(NULL)
     {}
 };
@@ -151,6 +151,7 @@ public:
     virtual bool collision(const Vec3& point, Vec3& movement);
 
     static bool drawNormals_;
+    static bool drawFaceCenters_;
 
 private:
     // void travel(Vertex* i, const Vec3& point, Vertex*& best, float& bestWeight, unsigned int depth);
