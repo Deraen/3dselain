@@ -5,6 +5,7 @@ Vaadittujen painikkeiden lisäksi:
 '<' - Wireframe päälle/pois.
 'Z' - Kolmioiden normaalien piirto.
 'X' - Kolmioiden keskipisteiden piirto.
+Space - Ylöspäin kamerasta riippumatta.
 */
 
 #include <iostream>
@@ -129,7 +130,7 @@ void handleKeys() {
     // Camera oldCamera = camera_;
 
     // Alla olevat siirrot tallentuvat kameralle
-    if (keys_['i']) camera_.move(-0.1);
+    if (keys_['i'] || buttons_[GLUT_LEFT_BUTTON]) camera_.move(-0.1);
     if (keys_['k']) camera_.move(0.1);
     if (keys_['j']) camera_.strafe(-0.1);
     if (keys_['l']) camera_.strafe(0.1);
