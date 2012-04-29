@@ -344,7 +344,7 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement, unsigned int depth)
     // }
 
     p = point;
-    q = point + movement;
+    q = point + (movement * 10.0);
     // Debug::start() << "Liikutaan " << p << " + " << movement << " -> " << q << Debug::end();
 
     // Vertex* v = nearestPoint(point);
@@ -357,33 +357,44 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement, unsigned int depth)
     for (unsigned int i = 0; i < faces_.size(); ++i) {
         Face* face = faces_.at(i);
         // tähän tarkistus että törmääkö pintaan
-        // kolmion boundingbox
-        float dp = p.distanceToPlane(face->normal, face->d);
-        float dq = q.distanceToPlane(face->normal, face->d);
+        // float dp = p.distanceToPlane(face->normal, face->d);
+        // float dq = q.distanceToPlane(face->normal, face->d);
+        float npq = face->normal.dot(point);
 
-        Debug::start() << "p " << p << " etäisyys tasoon " << dp << Debug::end();
-        Debug::start() << "q " << q << " etäisyys tasoon " << dq << Debug::end();
+        if (npq != 0) {
 
-        // float t = - (face->normal * p )
+        // Debug::start() << "p " << p << " etäisyys tasoon " << dp << Debug::end();
+        // Debug::start() << "q " << q << " etäisyys tasoon " << dq << Debug::end();
 
-        // float d = (point.dot(face->normal) - Vec3(face->a->x, face->a->y, face->a->z).dot(face->normal)) / face->normal.length();
-        // if (d < 1) {
-        // jos normaali osuu jossain pisteessä tasoon
-        // float npq = face->normal.dot(movement);
-        // if (npq != 0) {
-            // XXX: tarkemmat tarkastukset
-            // float t = - (face->normal.dot(point) + face->d) / npq;
-            // if (t >= 0.0 && t <= 1.0) {
-                Debug::start() << "Törmätään tasoon (" << *(face->a) << ") / (" << *(face->b) << ") / (" << *(face->c) << ")" << Debug::end();
-                tormatty_ = face;
-                // Vec3 
-                movement += face->normal * 0.1;
-                // liikutaan törmäys pisteeseen + pinnan normaalin suuntaan "kameran etäisyydelle"
-                return collision(point, movement, depth + 1);
-                return true;
-            // }
-        // }
-        // }
+        // if ((dp > 0 && dq < 0) || (dp < 0 && dq > 0)) {
+
+            float t = - (npq + face->d) / face->normal.dot(movement);
+
+            if (t >= 0 && t <= 1.0) {
+
+            Vec3 intersect(p + movement * t);
+
+                // Missä pisteessä leikkaa tason
+                // Vec3 intersect = ((q * dp) - (p * dq)) / (dp - dq);
+
+                // Debug::start() << "Leikkauspiste " << intersect << Debug::end();
+
+                // Onko leikkauspiste kolmion sisällä
+                if (face->isPointInside(intersect)) {
+
+                        Debug::start() << "Törmätään tasoon (" << *(face->a) << ") / (" << *(face->b) << ") / (" << *(face->c) << ")" << Debug::end();
+                        tormatty_ = face;
+
+                        movement += face->normal * 0.2;
+                        // movement = (intersect + face->normal * 0.5) - point;
+                        // liikutaan törmäys pisteeseen + pinnan normaalin suuntaan "kameran etäisyydelle"
+                        return collision(point, movement, depth + 1);
+                        return true;
+                }
+            }
+
+        }
+
         face = face->next;
     }
 
