@@ -6,6 +6,9 @@ Vaadittujen painikkeiden lisäksi:
 'Z' - Kolmioiden normaalien piirto.
 'X' - Kolmioiden keskipisteiden piirto.
 Space - Ylöspäin kamerasta riippumatta.
+
+Texturit:
+Kivi: http://agf81.deviantart.com/art/Stone-Texture-Seamless-197981741 - Some rights reserved. This work is licensed under a Creative Commons Attribution 3.0 License.
 */
 
 #include <iostream>
@@ -142,9 +145,9 @@ void handleKeys() {
     if (keys_[' ']) movement += Vec3(0.0, 0.2, 0.0);
     // movement += Vec3(0.0, -0.1, 0.0);
     // Ollaanko törmäämässä johonkin?
-    // for (unsigned int i = 0; i < objects_.size(); ++i) {
-    //     objects_.at(i)->collision(camera_.getPos(), movement);
-    // }
+    for (unsigned int i = 0; i < objects_.size(); ++i) {
+        objects_.at(i)->collision(camera_.getPos(), movement);
+    }
     objects_.at(1)->collision(camera_.getPos(), movement);
 
     // Suoritetaan muutettu siirto

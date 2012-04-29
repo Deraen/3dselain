@@ -17,6 +17,7 @@ public:
 
 	void draw();
 private:
+	GLuint texture_;
 
 	SolidMaterial material_;
 };
