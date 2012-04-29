@@ -39,7 +39,7 @@ struct Vec3 {
     Vec3 operator -(const Vec3& b) const {
         return Vec3(x - b.x,
                     y - b.y,
-                    z + b.z);
+                    z - b.z);
     }
 
     Vec3 operator *(const float b) const {
@@ -77,6 +77,10 @@ struct Vec3 {
 
     float length() const {
         return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+    }
+
+    float distanceToPlane(const Vec3& normal, const float d) {
+        return normal.x * x + normal.y * y + normal.z + z + d;
     }
 
     Vec3& normalize() {

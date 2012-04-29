@@ -18,7 +18,7 @@ Light::Light(GLenum n_):
     // glLightf(n, GL_QUADRATIC_ATTENUATION, 0.01);
 }
 
-bool Light::collision(const Vec3& point, Vec3& movement) {
+bool Light::collision(const Vec3& point, Vec3& movement, unsigned int depth) {
     return false;
 }
 

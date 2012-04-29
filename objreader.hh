@@ -97,13 +97,15 @@ struct Face {
     Vec3* b;
     Vec3* c;
     Vec3 normal;
+    float d;
     // Vec3 min;
     // Vec3 max;
     Face* next;
 
     Face(Vec3* a_, Vec3* b_, Vec3* c_):
         a(a_), b(b_), c(c_),
-        normal((*b - *a).cross((*c - *a)).normalize()),
+        normal((*b - *a).cross(*c - *a)),
+        d(0.0),
         // min(std::min(a->x, std::min(b->x, c->x)),
         //     std::min(a->y, std::min(b->y, c->y)),
         //     std::min(a->z, std::min(b->z, c->z))),
@@ -111,7 +113,10 @@ struct Face {
         //     std::max(a->y, std::max(b->y, c->y)),
         //     std::max(a->z, std::max(b->z, c->z))),
         next(NULL)
-    {}
+    {
+        normal.normalize();
+        d = -normal.x * a->x - normal.y * a->y - normal.z * a->z;
+    }
 };
 
 // struct VertexCompare {
@@ -148,9 +153,9 @@ public:
     virtual void draw();
 
     // virtual Vertex* nearestPoint(const Vec3& point);
-    virtual bool collision(const Vec3& point, Vec3& movement);
+    virtual bool collision(const Vec3& point, Vec3& movement, unsigned int depth = 0);
 
-    static bool drawNormals_;
+    static bool drawNormals_; 
     static bool drawFaceCenters_;
 
 private:
@@ -170,6 +175,9 @@ private:
     // Bounding box
     Vec3 min_;
     Vec3 max_;
+    Vec3 p;
+    Vec3 q;
+    Face* tormatty_;
 };
 
 #endif

@@ -51,7 +51,10 @@ ObjReader::ObjReader(const char* filename):
     // tree_(NULL),
     // best_(NULL),
     min_(0.0, 0.0, 0.0),
-    max_(0.0, 0.0, 0.0)
+    max_(0.0, 0.0, 0.0),
+    p(0.0, 0.0, 0.0),
+    q(0.0, 0.0, 0.0),
+    tormatty_(NULL)
     {
 
     vector<GLVertex> glVertexes;
@@ -308,16 +311,41 @@ void ObjReader::draw() {
             }
         }
         glEnd();
+
+        glBegin(GL_LINES);
+            glVertex3f(p.x, p.y, p.z);
+            glVertex3f(q.x, q.y, q.z);
+        glEnd();
+
+        if (tormatty_ != NULL) {
+            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+            glBegin(GL_TRIANGLES);
+                glVertex3f(tormatty_->a->x, tormatty_->a->y, tormatty_->a->z);
+                glVertex3f(tormatty_->b->x, tormatty_->b->y, tormatty_->b->z);
+                glVertex3f(tormatty_->c->x, tormatty_->c->y, tormatty_->c->z);
+            glEnd();
+            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        }
+
         GLfloat fuu[] = {0.0, 0.0, 0.0, 0.0};
         glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, fuu);
     }
+
 }
 
-bool ObjReader::collision(const Vec3& point, Vec3& movement) {
+bool ObjReader::collision(const Vec3& point, Vec3& movement, unsigned int depth) {
+    if (depth > 10) return true;
+    // jossei liikuttu
+    if (movement.length() == 0) return false;
+
     // Ei kappaleen bounding boxin sisällä
-    if (!point.inside(min_, max_)) {
-        return false;
-    }
+    // if (!point.inside(min_, max_)) {
+    //     return false;
+    // }
+
+    p = point;
+    q = point + movement;
+    // Debug::start() << "Liikutaan " << p << " + " << movement << " -> " << q << Debug::end();
 
     // Vertex* v = nearestPoint(point);
 
@@ -330,33 +358,37 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement) {
         Face* face = faces_.at(i);
         // tähän tarkistus että törmääkö pintaan
         // kolmion boundingbox
-        // Vec3 p(point);
-        // Vec3 q(point + movement);
-        // float dp = p.distanceToPlane(*face);
-        // float dq = p.distanceToPlane(*face);
+        float dp = p.distanceToPlane(face->normal, face->d);
+        float dq = q.distanceToPlane(face->normal, face->d);
+
+        Debug::start() << "p " << p << " etäisyys tasoon " << dp << Debug::end();
+        Debug::start() << "q " << q << " etäisyys tasoon " << dq << Debug::end();
 
         // float t = - (face->normal * p )
 
         // float d = (point.dot(face->normal) - Vec3(face->a->x, face->a->y, face->a->z).dot(face->normal)) / face->normal.length();
         // if (d < 1) {
         // jos normaali osuu jossain pisteessä tasoon
-        float npq = face->normal.dot(movement);
-        if (npq != 0) {
+        // float npq = face->normal.dot(movement);
+        // if (npq != 0) {
             // XXX: tarkemmat tarkastukset
-            float t = - (face->normal.dot(point)) / npq;
-            if (t >= 0.0 && t <= 1.0) {
+            // float t = - (face->normal.dot(point) + face->d) / npq;
+            // if (t >= 0.0 && t <= 1.0) {
                 Debug::start() << "Törmätään tasoon (" << *(face->a) << ") / (" << *(face->b) << ") / (" << *(face->c) << ")" << Debug::end();
+                tormatty_ = face;
+                // Vec3 
                 movement += face->normal * 0.1;
-                // return collision(point, movement);
+                // liikutaan törmäys pisteeseen + pinnan normaalin suuntaan "kameran etäisyydelle"
+                return collision(point, movement, depth + 1);
                 return true;
-            }
+            // }
         // }
-        }
+        // }
         face = face->next;
     }
 
     // }
 
-    Debug::start() << "Ei törmätty mihinkään" << Debug::end();
+    // Debug::start() << "Ei törmätty mihinkään" << Debug::end();
     return false;
 }
