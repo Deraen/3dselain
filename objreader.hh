@@ -15,10 +15,12 @@
 struct GLVertex {
     float x, y, z;
     float nx, ny, nz;
+    float u, v;
 
     GLVertex(float x_, float y_, float z_):
         x(x_), y(y_), z(z_),
-        nx(0.0), ny(0.0), nz(0.0)
+        nx(0.0), ny(0.0), nz(0.0),
+        u(0.0), v(0.0)
     {}
 };
 
@@ -202,6 +204,7 @@ private:
     Vec3 max_;
     Vec3 p;
     Vec3 q;
+    Vec3 intersect;
     Face* tormatty_;
 };
 

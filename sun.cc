@@ -3,7 +3,7 @@
 
 #include "sun.hh"
 
-Sun::Sun(): Light(GL_LIGHT0)
+Sun::Sun(): Light()
 {
 	setSpecular(1.0, 1.0, 1.0);
     setAmbient(0.1, 0.1, 0.1);

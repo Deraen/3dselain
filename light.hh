@@ -9,7 +9,7 @@
 
 class Light : public Drawable {
 public:
-    Light(GLenum n_);
+    Light();
 
     ~Light();
 
@@ -27,11 +27,13 @@ public:
 
 protected:
     GLenum n;
-    float* position;
+    GLfloat position[3];
 private:
-    GLfloat* specular;
-    GLfloat* ambient;
-    GLfloat* diffuse;
+    static GLenum lightN_;
+
+    GLfloat specular[4];
+    GLfloat ambient[4];
+    GLfloat diffuse[4];
 };
 
 #endif
