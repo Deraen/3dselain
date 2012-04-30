@@ -22,6 +22,7 @@ using std::vector;
 
 #include "camera.hh"
 #include "drawable.hh"
+#include "texture.hh"
 
 // --- VAKIOT ---
 const int DEF_WINDOW_WIDTH = 800;
@@ -81,6 +82,7 @@ void handleKey(unsigned char key, int, int) {
     if (key == '<') wireframe_ = !wireframe_;
     if (key == 'z') ObjReader::drawNormals_ = !ObjReader::drawNormals_;
     if (key == 'x') ObjReader::drawFaceCenters_ = !ObjReader::drawFaceCenters_;
+    if (key == 'c') Texture::enabled = !Texture::enabled;
     keys_[key] = true;
 }
 
@@ -95,7 +97,7 @@ void display() {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, static_cast<float>(windowWidth_) / static_cast<float>(windowHeight_), 0.1, 100);
+    gluPerspective(45.0, static_cast<float>(windowWidth_) / static_cast<float>(windowHeight_), 0.01, 1000);
 
     camera_.set();
 
@@ -145,9 +147,9 @@ void handleKeys() {
     if (keys_[' ']) movement += Vec3(0.0, 0.2, 0.0);
     // movement += Vec3(0.0, -0.1, 0.0);
     // Ollaanko törmäämässä johonkin?
-    for (unsigned int i = 0; i < objects_.size(); ++i) {
-        objects_.at(i)->collision(camera_.getPos(), movement);
-    }
+    // for (unsigned int i = 0; i < objects_.size(); ++i) {
+    //     objects_.at(i)->collision(camera_.getPos(), movement);
+    // }
     objects_.at(1)->collision(camera_.getPos(), movement);
 
     // Suoritetaan muutettu siirto

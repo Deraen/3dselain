@@ -14,6 +14,8 @@ using std::endl;
 using std::vector;
 #include <algorithm>
 using std::partial_sort;
+#include <utility>
+using std::pair;
 
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
@@ -54,11 +56,13 @@ ObjReader::ObjReader(const char* filename):
     max_(0.0, 0.0, 0.0),
     p(0.0, 0.0, 0.0),
     q(0.0, 0.0, 0.0),
+    intersect(0.0, 0.0, 0.0),
     tormatty_(NULL)
     {
 
     vector<GLVertex> glVertexes;
     vector<Vec3> normals;
+    vector<pair<float, float> > textureCoords;
     vector<GLFace> glFaces;
 
     ifstream file(filename);
@@ -88,6 +92,9 @@ ObjReader::ObjReader(const char* filename):
             if (first || z < min_.z) min_.z = z;
             if (first || z > max_.z) max_.z = z;
         } else if (eka == "vt") { // tekstuuri
+            float u, v;
+            lines >> u >> v;
+            textureCoords.push_back(pair<float,float>(u, v));
         } else if (eka == "vn") { // normaali
             // luetaan väliaikaisesti talteen tuonne (koska ennen facejen lukemista ei tiedetä mihin vertexiin liittyy...)
             float x, y, z;
@@ -110,12 +117,17 @@ ObjReader::ObjReader(const char* filename):
                     getline(faces, a, '/');
                     unsigned int vertex = string2uint(a) - 1;
                     getline(faces, a, '/');
+                    unsigned int texture = string2uint(a) - 1;
                     getline(faces, a, '/');
                     unsigned int normal = string2uint(a) - 1;
 
                     glVertexes.at(vertex).nx = normals.at(normal).x;
                     glVertexes.at(vertex).ny = normals.at(normal).y;
                     glVertexes.at(vertex).nz = normals.at(normal).z;
+                    if (texture != static_cast<unsigned int>(-1)) {
+                        glVertexes.at(vertex).u = textureCoords.at(texture).first;
+                        glVertexes.at(vertex).v = textureCoords.at(texture).second;
+                    }
                     v[i] = vertex;
                 } else {
                     Debug::start()[3] << "Normaali puuttuu" << Debug::end();
@@ -265,16 +277,16 @@ void ObjReader::draw() {
     // Normaalit structissa 3:n floatin jälkeen
     glNormalPointer(GL_FLOAT, sizeof (GLVertex), (char*)NULL + 3 * sizeof(float));
 
-    // glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     // Tekstuurikoordinaatit structissa 6:n floattia alun jälkeen
-    // glTexCoordPointer(2, GL_FLOAT, sizeof (Vertex), &vertexes_.front() + 6 * sizeof(float));
+    glTexCoordPointer(2, GL_FLOAT, sizeof (GLVertex), (char*)NULL + 6 * sizeof(float));
 
     glDrawElements(GL_TRIANGLES, 3 * faceCount_, GL_UNSIGNED_INT, NULL);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    // glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
 
@@ -289,7 +301,6 @@ void ObjReader::draw() {
     //     glPopMatrix();
     // }
 
-
     if (drawFaceCenters_ || drawNormals_) {
         if (drawNormals_) glBegin(GL_LINES);
         else              glBegin(GL_POINTS);
@@ -300,9 +311,7 @@ void ObjReader::draw() {
         // glBegin(GL_POINTS);
         for (unsigned int i = 0; i < faces_.size(); ++i) {
             Face* f = faces_.at(i);
-            Vec3 a(f->a->x / 3 + f->b->x / 3 + f->c->x / 3,
-                   f->a->y / 3 + f->b->y / 3 + f->c->y / 3,
-                   f->a->z / 3 + f->b->z / 3 + f->c->z / 3);
+            Vec3 a(*(f->a) / 3.0 + *(f->b) / 3.0 + *(f->c) / 3.0);
             glVertex3f(a.x, a.y, a.z);
 
             if (drawNormals_) {
@@ -312,24 +321,13 @@ void ObjReader::draw() {
         }
         glEnd();
 
-        glBegin(GL_LINES);
-            glVertex3f(p.x, p.y, p.z);
-            glVertex3f(q.x, q.y, q.z);
-        glEnd();
-
-        if (tormatty_ != NULL) {
-            glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-            glBegin(GL_TRIANGLES);
-                glVertex3f(tormatty_->a->x, tormatty_->a->y, tormatty_->a->z);
-                glVertex3f(tormatty_->b->x, tormatty_->b->y, tormatty_->b->z);
-                glVertex3f(tormatty_->c->x, tormatty_->c->y, tormatty_->c->z);
-            glEnd();
-            glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-        }
+        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
         GLfloat fuu[] = {0.0, 0.0, 0.0, 0.0};
         glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, fuu);
     }
+
+    glPopMatrix();
 
 }
 
@@ -337,14 +335,17 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement, unsigned int depth)
     if (depth > 10) return true;
     // jossei liikuttu
     if (movement.length() == 0) return false;
+    Debug::start() << point << Debug::end();
 
     // Ei kappaleen bounding boxin sisällä
     // if (!point.inside(min_, max_)) {
     //     return false;
     // }
 
-    p = point;
-    q = point + (movement * 10.0);
+    // p = point;
+    // q = point + movement;
+    // movement.normalize();
+    // movement *= 100.0;
     // Debug::start() << "Liikutaan " << p << " + " << movement << " -> " << q << Debug::end();
 
     // Vertex* v = nearestPoint(point);
@@ -359,37 +360,40 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement, unsigned int depth)
         // tähän tarkistus että törmääkö pintaan
         // float dp = p.distanceToPlane(face->normal, face->d);
         // float dq = q.distanceToPlane(face->normal, face->d);
-        float npq = face->normal.dot(point);
+        float np = face->normal.dot(point);
 
-        if (npq != 0) {
+        if (np != 0) {
 
         // Debug::start() << "p " << p << " etäisyys tasoon " << dp << Debug::end();
         // Debug::start() << "q " << q << " etäisyys tasoon " << dq << Debug::end();
 
-        // if ((dp > 0 && dq < 0) || (dp < 0 && dq > 0)) {
+        // if ((dp >= 0 && dq <= 0) || (dp <= 0 && dq >= 0)) {
 
-            float t = - (npq + face->d) / face->normal.dot(movement);
+            float t = - (np + face->d) / face->normal.dot(movement);
 
-            if (t >= 0 && t <= 1.0) {
+            if (t >= 0) {
 
-            Vec3 intersect(p + movement * t);
+                Vec3 intersect(p + movement * t);
+                Vec3 point2intersect(intersect - point);
+                // Debug::start() << "Liikutaan " << point << " + " << movement << " = " << intersect << Debug::end();
 
                 // Missä pisteessä leikkaa tason
-                // Vec3 intersect = ((q * dp) - (p * dq)) / (dp - dq);
+                // intersect = ((q * dp) - (p * dq)) / (dp - dq);
 
                 // Debug::start() << "Leikkauspiste " << intersect << Debug::end();
 
                 // Onko leikkauspiste kolmion sisällä
-                if (face->isPointInside(intersect)) {
+                if (point2intersect.length() < 2.0 && face->isPointInside(intersect)) {
 
-                        Debug::start() << "Törmätään tasoon (" << *(face->a) << ") / (" << *(face->b) << ") / (" << *(face->c) << ")" << Debug::end();
-                        tormatty_ = face;
+                    Debug::start() << "Törmätään tasoon (" << *(face->a) << ") / (" << *(face->b) << ") / (" << *(face->c) << ") pisteessä " << intersect << Debug::end();
+                    tormatty_ = face;
 
-                        movement += face->normal * 0.2;
-                        // movement = (intersect + face->normal * 0.5) - point;
-                        // liikutaan törmäys pisteeseen + pinnan normaalin suuntaan "kameran etäisyydelle"
-                        return collision(point, movement, depth + 1);
-                        return true;
+                    // movement = (intersect + face->normal) - point;
+                    Debug::start() << "movement length " << movement.length() << " (intersepct-point): " << point2intersect.length() << Debug::end();
+                    movement = face->normal * (movement.length() / point2intersect.length());
+                    // liikutaan törmäys pisteeseen + pinnan normaalin suuntaan "kameran etäisyydelle"
+                    // return collision(point, movement, depth + 1);
+                    return true;
                 }
             }
 

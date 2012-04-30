@@ -9,6 +9,7 @@
 #include "solidmaterial.hh"
 #include "drawable.hh"
 #include "objreader.hh"
+#include "texture.hh"
 
 class Alusta : public ObjReader {
 public:
@@ -17,9 +18,8 @@ public:
 
 	void draw();
 private:
-	GLuint texture_;
-
 	SolidMaterial material_;
+	Texture texture_;
 };
 
 #endif

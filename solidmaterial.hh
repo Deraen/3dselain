@@ -22,10 +22,10 @@ public:
 	void use();
 
 private:
-	GLfloat* specular_;
-	GLfloat* diffuse_;
-	GLfloat* shinines_;
-	GLfloat* emission_;
+	GLfloat specular_[4];
+	GLfloat diffuse_[4];
+	GLfloat shinines_[4];
+	GLfloat emission_[4];
 
 };
 
