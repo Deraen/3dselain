@@ -265,6 +265,10 @@ ObjReader::ObjReader(const char* filename):
 //     return best_;
 // }
 
+ObjReader::~ObjReader() {
+    // XXX: vapauta vbo:t
+}
+
 void ObjReader::draw() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vinx_);
@@ -335,7 +339,7 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement, unsigned int depth)
     if (depth > 10) return true;
     // jossei liikuttu
     if (movement.length() == 0) return false;
-    Debug::start() << point << Debug::end();
+    Debug::start() << "piste " << point << Debug::end();
 
     // Ei kappaleen bounding boxin sisällä
     // if (!point.inside(min_, max_)) {
@@ -355,6 +359,9 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement, unsigned int depth)
     //     Vertex* v = vertexes_.at(i);
     //     Vertex::Face* face = v->faces;
     //     while (face != NULL) {
+    float nearestDistance = 0.0;
+    Face* nearest = NULL;
+
     for (unsigned int i = 0; i < faces_.size(); ++i) {
         Face* face = faces_.at(i);
         // tähän tarkistus että törmääkö pintaan
@@ -373,8 +380,11 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement, unsigned int depth)
 
             if (t >= 0) {
 
-                Vec3 intersect(p + movement * t);
-                Vec3 point2intersect(intersect - point);
+                Vec3 intersect(point + movement * t);
+
+                // Debug::start() << "Intersect " << intersect << Debug::end();
+
+                Vec3 point2intersect(movement * t);
                 // Debug::start() << "Liikutaan " << point << " + " << movement << " = " << intersect << Debug::end();
 
                 // Missä pisteessä leikkaa tason
@@ -383,17 +393,10 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement, unsigned int depth)
                 // Debug::start() << "Leikkauspiste " << intersect << Debug::end();
 
                 // Onko leikkauspiste kolmion sisällä
-                if (point2intersect.length() < 2.0 && face->isPointInside(intersect)) {
+                if ((nearest == NULL || point2intersect.length() < nearestDistance) && (point2intersect.length() < 2.0 && face->isPointInside(intersect))) {
 
-                    Debug::start() << "Törmätään tasoon (" << *(face->a) << ") / (" << *(face->b) << ") / (" << *(face->c) << ") pisteessä " << intersect << Debug::end();
-                    tormatty_ = face;
-
-                    // movement = (intersect + face->normal) - point;
-                    Debug::start() << "movement length " << movement.length() << " (intersepct-point): " << point2intersect.length() << Debug::end();
-                    movement = face->normal * (movement.length() / point2intersect.length());
-                    // liikutaan törmäys pisteeseen + pinnan normaalin suuntaan "kameran etäisyydelle"
-                    // return collision(point, movement, depth + 1);
-                    return true;
+                    nearest = face;
+                    nearestDistance = point2intersect.length();
                 }
             }
 
@@ -403,6 +406,19 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement, unsigned int depth)
     }
 
     // }
+
+
+    // Debug::start() << "Törmätään tasoon (" << *(face->a) << ") / (" << *(face->b) << ") / (" << *(face->c) << ") pisteessä " << intersect << Debug::end();
+    // tormatty_ = face;
+
+    // movement = (intersect + face->normal) - point;
+    if (nearest != NULL) {
+        Debug::start() << "movement length " << movement.length() << " (intersect-point): " << nearestDistance << Debug::end();
+        movement = nearest->normal * (movement.length() / nearestDistance);
+    }
+    // liikutaan törmäys pisteeseen + pinnan normaalin suuntaan "kameran etäisyydelle"
+    // return collision(point, movement, depth + 1);
+    // return true;
 
     // Debug::start() << "Ei törmätty mihinkään" << Debug::end();
     return false;

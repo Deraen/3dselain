@@ -9,7 +9,7 @@
 #include "objreader.hh"
 
 Alusta::Alusta():
-	ObjReader("alusta2.obj"),
+	ObjReader("alusta.obj"),
 	material_(),
 	texture_("stone.tga")
 {
