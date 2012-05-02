@@ -176,6 +176,7 @@ struct Face {
 class ObjReader: public Drawable {
 public:
     ObjReader(const char* filename);
+    ~ObjReader();
 
     virtual void draw();
 
