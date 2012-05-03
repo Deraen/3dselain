@@ -20,7 +20,7 @@ public:
     // Matrix * int
     // Matrix& operator*=(const double& b);
     // Vec3 = Vec * Matrix
-    Vec3 operator*(const Vec3& b);
+    Vec3 operator*(const Vec3& b) const;
 
     // i rivi, j sarake
     void set(const unsigned int i, const unsigned int j, const double d);

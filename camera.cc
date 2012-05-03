@@ -34,6 +34,12 @@ Vec3 Camera::getMovement() const { return delta_; }
 
 Vec3 Camera::getPos() const { return pos_; }
 
+Vec3 Camera::getVector() const {
+    Vec3 suunta(0.0, 0.0, -1.0);
+    suunta = rot_ * suunta;
+    return suunta.normalize();
+}
+
 void Camera::move(float amount) {
     Vec3 suunta(0.0, 0.0, 1.0);
     suunta = rot_ * suunta;

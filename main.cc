@@ -377,6 +377,28 @@ void handleKeys() {
         camera_.pitch(pitch);
         glutWarpPointer(windowWidth_ / 2, windowHeight_ / 2);
     }
+
+    // VOIMA
+    if (buttons_[GLUT_MIDDLE_BUTTON]) {
+        Cube* nearest = NULL;
+        float nearestDistance = 0.0;
+        for (unsigned int i = 0; i < objects_.size(); ++i) {
+            Cube* cube = dynamic_cast<Cube*>(objects_.at(i));
+            if (cube != NULL) {
+                float distance = 0.0;
+                if (cube->rayCollision(camera_.getPos(), camera_.getVector(), distance) 
+                 && (nearest == NULL || distance < nearestDistance)) {
+                    nearest = cube;
+                    nearestDistance = distance;
+                }
+            }
+        }
+
+        if (nearest != NULL) {
+            // Debug::start() << "Kuutio edessäpäin!" << Debug::end();
+            nearest->useTheForce(secondsSinceStart_);
+        }
+    }
 }
 
 void mouse(int button, int state, int x, int y) {

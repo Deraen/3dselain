@@ -94,7 +94,7 @@ double Matrix::get(const unsigned int i, const unsigned int j) const {
 // a b c d = a + 2*b + 3*c + 0*d
 // e f h i = e + 2*f + 3*h + 0*i
 // j k l m = j + 2*k + 3*l + 0*m
-Vec3 Matrix::operator *(Vec3 const& b) {
+Vec3 Matrix::operator *(Vec3 const& b) const {
     assert(m_ == 4 && n_ == 4 && "Fuu");
     return Vec3(b.x * get(0, 0) + b.y * get(0, 1) + b.z * get(0, 2),
                b.x * get(1, 0) + b.y * get(1, 1) + b.z * get(1, 2),
