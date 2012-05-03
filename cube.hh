@@ -13,7 +13,7 @@ public:
 	Cube(float r, float g, float b, float x, float y, float z);
 
 	void draw();
-	bool collision(const Vec3& point, Vec3& movement, unsigned int depth = 0);
+	bool collision(const Vec3& point, Vec3& movement);
 
 private:
 	SolidMaterial material_;

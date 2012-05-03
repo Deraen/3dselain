@@ -23,7 +23,7 @@ public:
 
     void draw();
 
-    virtual bool collision(const Vec3& point, Vec3& movement, unsigned int depth = 0);
+    virtual bool collision(const Vec3& point, Vec3& movement);
 
 protected:
     GLenum n;

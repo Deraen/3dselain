@@ -8,8 +8,6 @@ using std::istringstream;
 using std::cout;
 using std::endl;
 #include <cmath>
-// using std::min;
-// using std::max;
 #include <vector>
 using std::vector;
 #include <algorithm>
@@ -23,6 +21,7 @@ using std::pair;
 
 #include "objreader.hh"
 #include "debug.hh"
+#include "common.hh"
 
 bool ObjReader::drawNormals_ = false;
 bool ObjReader::drawFaceCenters_ = false;
@@ -40,24 +39,14 @@ namespace {
 /*
 Olettaa että tiedostossa on vain yksi objekti.
 
-Toteutin 3 ulotteisen kdtree:n vertexeille mutta
-se ei jonkun takia palauttanut lähintä pistettä kovin
-luotettavasti. Kaikkien pintojenkin läpikäynti tuntuu olevan kohtuu nopeata.
+Törmäysten etsintä tuntuu toimivan tarpeaksi nopeasti ilman kdtree.
 */
 ObjReader::ObjReader(const char* filename):
     vbo_(0),
     vinx_(0),
-    faceCount_(0),
     faces_(),
-    // vertexes_(),
-    // tree_(NULL),
-    // best_(NULL),
     min_(0.0, 0.0, 0.0),
-    max_(0.0, 0.0, 0.0),
-    p(0.0, 0.0, 0.0),
-    q(0.0, 0.0, 0.0),
-    intersect(0.0, 0.0, 0.0),
-    tormatty_(NULL)
+    max_(0.0, 0.0, 0.0)
     {
 
     vector<GLVertex> glVertexes;
@@ -67,7 +56,6 @@ ObjReader::ObjReader(const char* filename):
 
     ifstream file(filename);
 
-    // XXX: ois ehk hyvä tarkistaa että eri asioita luetaan yhtä monta
     bool stop = false;
     bool first = true;
     while(!stop && file) {
@@ -148,33 +136,23 @@ ObjReader::ObjReader(const char* filename):
         first = false;
     }
 
-    Debug::start()[0] << "Luettiin " << glVertexes.size() << " vertexiä, sizeof GLVertex: " << sizeof(GLVertex) << Debug::end();
-    Debug::start()[0] << "Luettiin " << glFaces.size() << " facea, sizeof GLFace: " << sizeof(GLFace) << Debug::end();
+    min_ -= Vec3(CAMERA_R, CAMERA_R, CAMERA_R);
+    max_ += Vec3(CAMERA_R, CAMERA_R, CAMERA_R);
+
+    Debug::start()[1] << "Malli: " << filename << Debug::end();
+    Debug::start()[2] << "Luettiin " << glVertexes.size() << " vertexiä" << Debug::end();
+    Debug::start()[2] << "Luettiin " << glFaces.size() << " facea" << Debug::end();
 
     // Talletetaan glVertexit ja glFacet VBO:hon.
-    // glGenVertexArrays(1, &vbo_); // XXX oiskoha paree näitä käyttäen
     glGenBuffers(1, &vbo_);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
     glBufferData(GL_ARRAY_BUFFER, glVertexes.size() * sizeof(GLVertex), &glVertexes.front(), GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // for (unsigned int i = 0; i < glFaces.size(); ++i) {
-    //     Debug::start()[1] << "Pinta " << i << " " << &glFaces.at(i) << Debug::end();
-    // }
-
     glGenBuffers(1, &vinx_);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vinx_);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, glFaces.size() * sizeof(GLFace), &glFaces.front(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    // ainut mität tarvitaan jatkossa piirtoon
-    faceCount_ = glFaces.size();
-
-    // for (unsigned int i = 0; i < faceCount_; ++i) {
-    //     unsigned int a = temp[i].a;
-    //     unsigned int b = temp[i].b;
-    //     unsigned int c = temp[i].c;
-    //     Debug::start() << "Pinta " << i << " " << a << " - " << b << " - " << c << Debug::end();
-    // }
 
     // Rakennetaan luetuista vertexeistä ja pinnoista omia vertexeitä
     // joilla vähän enempi ominaisuuksia.
@@ -191,82 +169,13 @@ ObjReader::ObjReader(const char* filename):
         Vec3* b = vertexes.at(glFaces.at(i).b);
         Vec3* c = vertexes.at(glFaces.at(i).c);
         faces_.push_back(new Face(a, b, c));
-        // vertexes.at(glFaces.at(i).a)->appendFace(a, b, c);
-        // vertexes.at(glFaces.at(i).b)->appendFace(a, b, c);
-        // vertexes.at(glFaces.at(i).c)->appendFace(a, b, c);
     }
 
-    // tree_ = kdtree(0, vertexes_.size() - 1, 0);
 }
 
-// Vertex* ObjReader::kdtree(unsigned int start,
-//                           unsigned int end,
-//                           unsigned int depth) {
-//     if (end < start) {
-//         return NULL;
-//     }
-
-//     if (start == end) return vertexes_.at(start);
-
-//     // Ollaan kiinnostuttu mediaanista jonkin akselin suhteen
-//     unsigned int median = start + (end - start) / 2;
-
-//     // Aika nopea tää oli kyll vaikka järjestäis sort:lla koko homman
-//     partial_sort(vertexes_.begin() + start,
-//                  vertexes_.begin() + median + 1, // hmm tarviikohan tuota +1?
-//                  vertexes_.begin() + end,
-//                  VertexCompare(static_cast<VertexCompare::SortType>(depth % 3)));
-
-//     Vertex* uusi = vertexes_.at(median);
-
-//     uusi->lesser = kdtree(start, median - 1, depth + 1);
-//     uusi->greater = kdtree(median + 1, end, depth + 1);
-
-//     return uusi;
-// }
-
-// void ObjReader::travel(Vertex* i, const Vec3& point, Vertex*& best, float& bestWeight, unsigned int depth) {
-//     if (i == NULL) return;
-
-//     Vertex* next = NULL;
-//     Vertex* other = NULL;
-//     if ((depth % 3 == 0 && point.x < i->x)
-//      || (depth % 3 == 1 && point.y < i->y)
-//      || (depth % 3 == 2 && point.z < i->z)) {
-//         next = i->lesser;
-//         other = i->greater;
-//     } else {
-//         next = i->greater;
-//         other = i->lesser;
-//     }
-//     if (next != NULL) travel(next, point, best, bestWeight, depth + 1);
-
-//     // vika
-//     float weight = i->weightBetween(point);
-//     if (best == NULL || weight < bestWeight) {
-//         best = i;
-//         bestWeight = weight;
-//     }
-
-//     // pitäisikö tarkistaa myös toinen haara?
-//     if (other != NULL) {
-//         weight = other->weightBetween(point);
-//         if (weight < bestWeight) {
-//             travel(other, point, best, bestWeight, depth + 1);
-//         }
-//     }
-// }
-
-// Vertex* ObjReader::nearestPoint(const Vec3& point)
-// {
-//     float bestWeight = 0;
-//     best_ = NULL;
-//     travel(tree_, point, best_, bestWeight, 0);
-//     return best_;
-// }
-
 ObjReader::~ObjReader() {
-    // XXX: vapauta vbo:t
+    glDeleteBuffers(1, &vbo_);
+    glDeleteBuffers(1, &vinx_);
 }
 
 void ObjReader::draw() {
@@ -285,7 +194,7 @@ void ObjReader::draw() {
     // Tekstuurikoordinaatit structissa 6:n floattia alun jälkeen
     glTexCoordPointer(2, GL_FLOAT, sizeof (GLVertex), (char*)NULL + 6 * sizeof(float));
 
-    glDrawElements(GL_TRIANGLES, 3 * faceCount_, GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, 3 * faces_.size(), GL_UNSIGNED_INT, NULL);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -293,17 +202,6 @@ void ObjReader::draw() {
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
-
-    // if (best_ != NULL) {
-    //     GLfloat diffuse[] = {1.0, 0.0, 0.0, 1.0};
-    //     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
-    //     glPushMatrix();
-    //     glTranslatef(best_->x,
-    //                  best_->y,
-    //                  best_->z);
-    //     glutSolidSphere(0.05, 8, 8);
-    //     glPopMatrix();
-    // }
 
     if (drawFaceCenters_ || drawNormals_) {
         if (drawNormals_) glBegin(GL_LINES);
@@ -325,101 +223,52 @@ void ObjReader::draw() {
         }
         glEnd();
 
-        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
         GLfloat fuu[] = {0.0, 0.0, 0.0, 0.0};
         glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, fuu);
     }
 
-    glPopMatrix();
-
 }
 
-bool ObjReader::collision(const Vec3& point, Vec3& movement, unsigned int depth) {
-    if (depth > 10) return true;
+bool ObjReader::collision(const Vec3& point, Vec3& movement) {
     // jossei liikuttu
     if (movement.length() == 0) return false;
-    Debug::start() << "piste " << point << Debug::end();
 
     // Ei kappaleen bounding boxin sisällä
-    // if (!point.inside(min_, max_)) {
-    //     return false;
-    // }
+    if (!point.inside(min_, max_)) {
+        return false;
+    }
 
-    // p = point;
-    // q = point + movement;
-    // movement.normalize();
-    // movement *= 100.0;
-    // Debug::start() << "Liikutaan " << p << " + " << movement << " -> " << q << Debug::end();
-
-    // Vertex* v = nearestPoint(point);
-
-    // for (unsigned int i = 0; i < vertexes_.size(); ++i) {
-
-    //     Vertex* v = vertexes_.at(i);
-    //     Vertex::Face* face = v->faces;
-    //     while (face != NULL) {
     float nearestDistance = 0.0;
     Face* nearest = NULL;
 
+    Vec3 p(point + movement);
+
+
+    // Debug::start() << "Piste " << p << Debug::end();
     for (unsigned int i = 0; i < faces_.size(); ++i) {
         Face* face = faces_.at(i);
-        // tähän tarkistus että törmääkö pintaan
-        // float dp = p.distanceToPlane(face->normal, face->d);
-        // float dq = q.distanceToPlane(face->normal, face->d);
-        float np = face->normal.dot(point);
 
-        if (np != 0) {
+        if (p.inside(face->min, face->max)) {
 
-        // Debug::start() << "p " << p << " etäisyys tasoon " << dp << Debug::end();
-        // Debug::start() << "q " << q << " etäisyys tasoon " << dq << Debug::end();
+            // etäisyys kohteesta tason lähimpään pisteeseen
+            float distance = p.distanceToPlane(face->normal, face->d);
 
-        // if ((dp >= 0 && dq <= 0) || (dp <= 0 && dq >= 0)) {
+            // kohde pistettä lähin piste tasolla
+            Vec3 q(p - face->normal * distance);
 
-            float t = - (np + face->d) / face->normal.dot(movement);
+            if (distance < CAMERA_R && (nearest == NULL || distance < nearestDistance)
+             && face->isPointInside(q)) {
 
-            if (t >= 0) {
-
-                Vec3 intersect(point + movement * t);
-
-                // Debug::start() << "Intersect " << intersect << Debug::end();
-
-                Vec3 point2intersect(movement * t);
-                // Debug::start() << "Liikutaan " << point << " + " << movement << " = " << intersect << Debug::end();
-
-                // Missä pisteessä leikkaa tason
-                // intersect = ((q * dp) - (p * dq)) / (dp - dq);
-
-                // Debug::start() << "Leikkauspiste " << intersect << Debug::end();
-
-                // Onko leikkauspiste kolmion sisällä
-                if ((nearest == NULL || point2intersect.length() < nearestDistance) && (point2intersect.length() < 2.0 && face->isPointInside(intersect))) {
-
-                    nearest = face;
-                    nearestDistance = point2intersect.length();
-                }
+                nearest = face;
+                nearestDistance = distance;
             }
-
         }
 
-        face = face->next;
     }
 
-    // }
-
-
-    // Debug::start() << "Törmätään tasoon (" << *(face->a) << ") / (" << *(face->b) << ") / (" << *(face->c) << ") pisteessä " << intersect << Debug::end();
-    // tormatty_ = face;
-
-    // movement = (intersect + face->normal) - point;
     if (nearest != NULL) {
-        Debug::start() << "movement length " << movement.length() << " (intersect-point): " << nearestDistance << Debug::end();
-        movement = nearest->normal * (movement.length() / nearestDistance);
+        movement += nearest->normal * (CAMERA_R - nearestDistance);
     }
-    // liikutaan törmäys pisteeseen + pinnan normaalin suuntaan "kameran etäisyydelle"
-    // return collision(point, movement, depth + 1);
-    // return true;
 
-    // Debug::start() << "Ei törmätty mihinkään" << Debug::end();
     return false;
 }
