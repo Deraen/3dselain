@@ -28,6 +28,7 @@ public:
     void set();
 
     Vec3 getPos() const;
+    Vec3 getVector() const;
 
 private:
     Vec3 pos_;

@@ -272,3 +272,40 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement) {
 
     return false;
 }
+
+
+bool ObjReader::rayCollision(const Vec3& point, const Vec3& ray, float& distance) {
+    float nearestDistance = 0.0;
+    Face* nearest = NULL;
+
+    // Debug::start() << "Ray " << ray << Debug::end();
+
+    Vec3 p(point);
+    Vec3 q(point + ray);
+    Vec3 pq(ray);
+
+    for (unsigned int i = 0; i < faces_.size(); ++i) {
+        Face* face = faces_.at(i);
+
+        float npq = face->normal.dot(ray);
+        if (npq != 0) {
+            float t = - (face->normal.dot(p) + face->d) / npq;
+            // säde leikkaa tason
+            if (t >= 0) {
+                Vec3 intersect(point + ray * t);
+                // Debug::start() << "Leikkaus piste " << intersect << Debug::end();
+                if (face->isPointInside(intersect)) {
+                    // Debug::start() << "Piste on pinnan sisällä" << Debug::end();
+                    if (nearest == NULL || t < nearestDistance) {
+                        nearestDistance = t;
+                        nearest = face;
+                    }
+                }
+            }
+        }
+    }
+
+    distance = nearestDistance;
+    return nearest != NULL;
+}
+

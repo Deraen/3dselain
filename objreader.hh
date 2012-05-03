@@ -93,6 +93,7 @@ public:
 
     virtual void draw();
     virtual bool collision(const Vec3& point, Vec3& movement);
+    virtual bool rayCollision(const Vec3& point, const Vec3& ray, float& distance);
 
     static bool drawNormals_;
     static bool drawFaceCenters_;

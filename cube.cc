@@ -12,7 +12,9 @@ ObjReader* Cube::file = NULL;
 Cube::Cube(float r, float g, float b, float x, float y, float z):
     // ObjReader("cube.obj"),
     material_(),
-    pos_(x, y, z)
+    pos_(x, y, z),
+    startpos_(pos_),
+    forceTime_(0)
 {
     if (file == NULL) file = new ObjReader("obj/cube.obj");
 
@@ -34,8 +36,25 @@ void Cube::draw() {
 }
 
 bool Cube::collision(const Vec3 &point, Vec3 &movement) {
-    // XXX: collision olettaa että kappale on maailma koordinaateissa
+    // collision olettaa että kappale on maailma koordinaateissa
     return file->collision(Vec3(point.x - pos_.x,
                                 point.y - pos_.y,
                                 point.z - pos_.z), movement);
+}
+
+bool Cube::rayCollision(const Vec3 &point, const Vec3 &ray, float& distance) {
+    return file->rayCollision(Vec3(point.x - pos_.x,
+                                   point.y - pos_.y,
+                                   point.z - pos_.z), ray, distance);
+}
+
+void Cube::animate(float time) {
+    if (time > forceTime_ + 2.0 && pos_.y > startpos_.y) {
+        pos_ -= Vec3(0.0, 0.1, 0.0);
+    }
+}
+
+void Cube::useTheForce(float time) {
+    forceTime_ = time;
+    pos_ += Vec3(0.0, 0.3, 0.0);
 }
