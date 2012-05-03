@@ -17,6 +17,13 @@ struct Vec3 {
         return *this;
     }
 
+    Vec3& operator -=(const Vec3& b) {
+        x -= b.x;
+        y -= b.y;
+        z -= b.z;
+        return *this;
+    }
+
     Vec3& operator /=(const float b) {
         x /= b;
         y /= b;
@@ -80,7 +87,7 @@ struct Vec3 {
     }
 
     float distanceToPlane(const Vec3& normal, const float d) {
-        return normal.x * x + normal.y * y + normal.z + z + d;
+        return normal.x * x + normal.y * y + normal.z * z + d;
     }
 
     Vec3& normalize() {

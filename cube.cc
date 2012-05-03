@@ -14,7 +14,7 @@ Cube::Cube(float r, float g, float b, float x, float y, float z):
     material_(),
     pos_(x, y, z)
 {
-    if (file == NULL) file = new ObjReader("cube.obj");
+    if (file == NULL) file = new ObjReader("obj/cube.obj");
 
     material_.setShinines(128);
     material_.setDiffuse(r, g, b);
@@ -33,7 +33,7 @@ void Cube::draw() {
     file->draw();
 }
 
-bool Cube::collision(const Vec3 &point, Vec3 &movement, unsigned int depth) {
+bool Cube::collision(const Vec3 &point, Vec3 &movement) {
     // XXX: collision olettaa että kappale on maailma koordinaateissa
     return file->collision(Vec3(point.x - pos_.x,
                                 point.y - pos_.y,
