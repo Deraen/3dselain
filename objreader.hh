@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <cmath>
+#include <map>
 
 #include <GL/gl.h>
 
@@ -12,16 +13,35 @@
 #include "debug.hh"
 #include "drawable.hh"
 
+struct Vec4 {
+    float r, g, b, a;
+
+    Vec4(float r_, float g_, float b_, float a_):
+        r(r_), g(g_), b(b_), a(a_)
+    {}
+};
+
+
+#pragma pack(1)
 struct GLVertex {
     float x, y, z;
     float nx, ny, nz;
     float u, v;
+    float r, g, b, a;
 
     GLVertex(float x_, float y_, float z_):
         x(x_), y(y_), z(z_),
         nx(0.0), ny(0.0), nz(0.0),
-        u(0.0), v(0.0)
+        u(0.0), v(0.0),
+        r(0.0), g(0.0), b(0.0), a(0.0)
     {}
+
+    void setColor(Vec4 color) {
+        r = color.r;
+        g = color.g;
+        b = color.b;
+        a = color.a;
+    }
 };
 
 struct GLFace {
@@ -33,6 +53,7 @@ struct GLFace {
         a(a_), b(b_), c(c_)
     {}
 };
+#pragma pack()
 
 struct Face {
     Vec3* a;
@@ -100,11 +121,15 @@ public:
 
 private:
 
+    void readMaterials(const std::string& filename);
+
     GLuint vbo_;
     GLuint vinx_;
     std::vector<Face*> faces_;
     Vec3 min_;
     Vec3 max_;
+
+    std::map<std::string, Vec4*> colors_;
 };
 
 #endif

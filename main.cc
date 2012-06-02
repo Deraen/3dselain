@@ -59,9 +59,7 @@ using std::string;
 #include "drawable.hh"
 #include "texture.hh"
 #include "objreader.hh"
-#include "solidmaterial.hh"
 #include "light.hh"
-#include "cube.hh"
 
 // --- VAKIOT ---
 const int DEF_WINDOW_WIDTH = 800;
@@ -72,7 +70,7 @@ const unsigned int NUM_OF_KEYS = sizeof(char);
 const unsigned int NUM_OF_BUTTONS = 3;
 
 // --- GLOBAALIT ---
-Camera camera_(0.0, 10.0, 0.0);
+Camera camera_(0.0, 0.5, 0.0);
 bool keys_[256];
 bool buttons_[3];
 unsigned int windowWidth_, windowHeight_;
@@ -125,113 +123,11 @@ public:
     }
 };
 
-class Valo : public Light {
-public:
-    Valo(float x, float y, float z):
-        Light()
-    {
-        setSpecular(1.0, 1.0, 1.0);
-        setAmbient(0.1, 0.1, 0.1);
-        setDiffuse(1.0, 1.0, 1.0);
-        setPos(x, y, z);
-    }
-
-    void draw() {
-        glTranslatef(position[0], position[1], position[2]);
-        glutSolidSphere(1.0, 16, 16);
-
-        Light::draw();
-    }
-};
-
-class Alusta : public ObjReader {
-public:
-    Alusta():
-        ObjReader("obj/alusta.obj"),
-        material_()
-    {
-        material_.setShinines(100);
-        material_.setDiffuse(0.75, 0.75, 0.75);
-        material_.setSpecular(0.85, 0.85, 0.85);
-    }
-    ~Alusta() {}
-
-    void draw() {
-        material_.use();
-        getTexture("stone")->start();
-
-        ObjReader::draw();
-
-        getTexture("stone")->end();
-    }
-private:
-    SolidMaterial material_;
-};
-
-class Talo : public ObjReader {
-public:
-    Talo():
-        ObjReader("obj/talo.obj"),
-        material_()
-    {
-        material_.setShinines(100);
-        material_.setDiffuse(0.65, 0.85, 0.65);
-        material_.setSpecular(0.75, 0.95, 0.75);
-    }
-    ~Talo() {}
-
-    void draw() {
-        getTexture("stonewall")->start();
-        material_.use();
-
-        ObjReader::draw();
-        getTexture("stonewall")->end();
-    }
-private:
-    SolidMaterial material_;
-};
-
-/*
-Lataa mallin moneen kertaan.
-Voisi kiertää tallentamalla objreaderin staticiksi mutta olkoon
-*/
-class Muurit : public ObjReader {
-public:
-    Muurit(unsigned int angle):
-        ObjReader("obj/muurit.obj"),
-        angle_(angle),
-        material_()
-    {
-        material_.setShinines(100);
-        material_.setDiffuse(0.75, 0.75, 0.75);
-        material_.setSpecular(0.85, 0.85, 0.85);
-    }
-    ~Muurit() {}
-
-    void draw() {
-        material_.use();
-        glRotatef(angle_, 0.0, 1.0, 0.0);
-        getTexture("stonewall")->start();
-
-        ObjReader::draw();
-
-        getTexture("stonewall")->end();
-    }
-private:
-    unsigned int angle_;
-    SolidMaterial material_;
-};
-
 class Kasi : public ObjReader {
 public:
     Kasi():
-        ObjReader("obj/kasi.obj"),
-        material_()
-    {
-        material_.setShinines(100);
-        material_.setDiffuse(0.6, 0.3, 0.4);
-        material_.setSpecular(0.6, 0.3, 0.4);
-    }
+        ObjReader("obj/kasi.obj")
+    {}
     ~Kasi() {}
 
     bool collision(const Vec3& point, Vec3& movement) {
@@ -239,7 +135,6 @@ public:
     }
 
     void draw() {
-        material_.use();
         // hyödynnetään globaaleja rumasti...
         if (buttons_[GLUT_MIDDLE_BUTTON]) {
             glRotatef(5 * sin(secondsSinceStart_ * 3), 1.0, 0.0, 0.0);
@@ -248,7 +143,6 @@ public:
         ObjReader::draw();
     }
 private:
-    SolidMaterial material_;
 };
 
 void init() {
@@ -267,27 +161,14 @@ void init() {
     glFrontFace(GL_CW);
 
     glEnable(GL_LIGHTING);
-    // glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_COLOR_MATERIAL);
     glShadeModel(GL_SMOOTH);  // Sävytys: GL_FLAT / GL_SMOOTH
 
     addTexture("stone", "tex/stone.tga");
     addTexture("stonewall", "tex/stonewall.tga");
     kasi_ = new Kasi;
+    objects_.push_back(new ObjReader("obj/versio11.obj"));
     objects_.push_back(new Sun);
-    objects_.push_back(new Alusta);
-    objects_.push_back(new Talo);
-    objects_.push_back(new Valo(71.0, 92.0, -155.0));
-    objects_.push_back(new Valo(203.0, 87.0, -144.0));
-    objects_.push_back(new Valo(142.0, 90.0, -79.0));
-    objects_.push_back(new Muurit(0));
-    objects_.push_back(new Muurit(90));
-    objects_.push_back(new Muurit(180));
-    objects_.push_back(new Muurit(270));
-    objects_.push_back(new Cube(1.0, 0.5, 0.5, 20, 0, 0));
-    objects_.push_back(new Cube(0.5, 1.0, 0.5, 0, 20, 0));
-    objects_.push_back(new Cube(0.5, 0.5, 1.0, 0, 0, 20));
-    objects_.push_back(new Cube(0.5, 0.5, 1.0, 205, 33, -143));
-    objects_.push_back(new Cube(0.5, 0.5, 1.0, 177, 36, -76));
 }
 
 void destroy() {
@@ -363,16 +244,16 @@ void handleKeys() {
     if (keys_['q']) exit(0); // hmmm
 
     // Alla olevat siirrot tallentuvat kameralle
-    if (keys_['i'] || buttons_[GLUT_LEFT_BUTTON]) camera_.move(-1.0);
-    if (keys_['k']) camera_.move(1);
-    if (keys_['j']) camera_.strafe(-1);
-    if (keys_['l']) camera_.strafe(1);
-    if (keys_['y']) camera_.moveHeight(1);
-    if (keys_['h']) camera_.moveHeight(-1);
+    if (keys_['i'] || buttons_[GLUT_LEFT_BUTTON]) camera_.move(-0.1);
+    if (keys_['k']) camera_.move(0.1);
+    if (keys_['j']) camera_.strafe(-0.1);
+    if (keys_['l']) camera_.strafe(0.1);
+    if (keys_['y']) camera_.moveHeight(0.1);
+    if (keys_['h']) camera_.moveHeight(-0.1);
     // Yhteenlasketut siirrot
     Vec3 movement = camera_.getMovement();
 
-    if (keys_[' ']) movement += Vec3(0.0, 1.0, 0.0);
+    if (keys_[' ']) movement += Vec3(0.0, 0.1, 0.0);
     // Ollaanko törmäämässä johonkin?
     // törmäys päivittää liike vektoria törmäyksen mukaisesti
     for (unsigned int i = 0; i < objects_.size() && collisionDetection_; ++i) {
@@ -401,24 +282,24 @@ void handleKeys() {
 
     // VOIMA
     if (buttons_[GLUT_MIDDLE_BUTTON]) {
-        Cube* nearest = NULL;
-        float nearestDistance = 0.0;
-        for (unsigned int i = 0; i < objects_.size(); ++i) {
-            Cube* cube = dynamic_cast<Cube*>(objects_.at(i));
-            if (cube != NULL) {
-                float distance = 0.0;
-                if (cube->rayCollision(camera_.getPos(), camera_.getVector(), distance) 
-                 && (nearest == NULL || distance < nearestDistance)) {
-                    nearest = cube;
-                    nearestDistance = distance;
-                }
-            }
-        }
+        // Cube* nearest = NULL;
+        // float nearestDistance = 0.0;
+        // for (unsigned int i = 0; i < objects_.size(); ++i) {
+        //     Cube* cube = dynamic_cast<Cube*>(objects_.at(i));
+        //     if (cube != NULL) {
+        //         float distance = 0.0;
+        //         if (cube->rayCollision(camera_.getPos(), camera_.getVector(), distance) 
+        //          && (nearest == NULL || distance < nearestDistance)) {
+        //             nearest = cube;
+        //             nearestDistance = distance;
+        //         }
+        //     }
+        // }
 
-        if (nearest != NULL) {
-            // Debug::start() << "Kuutio edessäpäin!" << Debug::end();
-            nearest->useTheForce(secondsSinceStart_);
-        }
+        // if (nearest != NULL) {
+        //     // Debug::start() << "Kuutio edessäpäin!" << Debug::end();
+        //     nearest->useTheForce(secondsSinceStart_);
+        // }
     }
 }
 
