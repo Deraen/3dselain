@@ -14,6 +14,8 @@ using std::vector;
 using std::partial_sort;
 #include <utility>
 using std::pair;
+#include <map>
+using std::map;
 
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
@@ -46,13 +48,17 @@ ObjReader::ObjReader(const char* filename):
     vinx_(0),
     faces_(),
     min_(0.0, 0.0, 0.0),
-    max_(0.0, 0.0, 0.0)
+    max_(0.0, 0.0, 0.0),
+    colors_()
     {
 
     vector<GLVertex> glVertexes;
     vector<Vec3> normals;
     vector<pair<float, float> > textureCoords;
     vector<GLFace> glFaces;
+    Vec4 used_color(0.0, 0.0, 0.0, 1.0);
+
+    // map<string, Vec4> colors;
 
     ifstream file(filename);
 
@@ -117,6 +123,8 @@ ObjReader::ObjReader(const char* filename):
                         glVertexes.at(vertex).v = textureCoords.at(texture).second;
                     }
                     v[i] = vertex;
+
+                    glVertexes.at(vertex).setColor(used_color);
                 } else {
                     Debug::start()[3] << "Normaali puuttuu" << Debug::end();
                     stop = true;
@@ -127,7 +135,25 @@ ObjReader::ObjReader(const char* filename):
         } else if (eka == "s") { // shading
         } else if (eka == "o") { // objekti
         } else if (eka == "mtllib") {
+            string material_file;
+            lines >> material_file;
+
+            readMaterials(material_file);
         } else if (eka == "usemtl") { // pitäis käyttää jotai materiaalia
+            string color_name;
+            lines >> color_name;
+            map<string, Vec4*>::iterator it = colors_.find(color_name);
+            if (it != colors_.end()) {
+                used_color = *(it->second);
+            } else {
+                map<string, Vec4*>::iterator it = colors_.find("default");
+                if (it != colors_.end()) {
+                    used_color = *(it->second);
+                } else {
+                    Debug::start()[3] << "Väriä " << color_name << " tai default ei löytynyt?" << Debug::end();
+                    stop = true;
+                }
+            }
         } else {
             Debug::start()[3] << "Tunnistamaton rivi .obj tiedostossa " << eka << Debug::end();
             stop = true;
@@ -178,6 +204,49 @@ ObjReader::~ObjReader() {
     glDeleteBuffers(1, &vinx_);
 }
 
+
+void ObjReader::readMaterials(const string& filename) {
+
+    Debug::start()[2] << "Luetaan värit tiedostosta " << filename << Debug::end();
+
+    ifstream file(filename.c_str());
+
+    bool stop = false;
+    // bool first = true;
+    string name;
+    while(!stop && file) {
+        string line;
+        getline(file, line);
+        if (line.length() == 0
+         || line.at(0) == '#') continue; // tyhjä rivi tai kommentti mennään seuraavaan
+
+        istringstream lines(line);
+        string eka;
+        lines >> eka;
+
+        if (eka == "newmtl") {
+            if (!(lines >> name)) {
+                name = "default";
+            }
+            Debug::start()[1] << "Löydetty väri " << name << Debug::end();
+        } else if (eka == "Kd") { // Diffuusi väri.
+            float r, g, b, a;
+            a = 1.0;
+            lines >> r >> g >> b;
+
+            colors_[name] = new Vec4(r, g, b, a);
+        } else if (eka == "map_Kd" || eka == "Ns" || eka == "Ka" || eka == "Ks" || eka == "Ni" || eka == "d" || eka == "illum") {
+        } else {
+            Debug::start()[3] << "Tunnistamaton rivi .mtl tiedostossa " << eka << Debug::end();
+            stop = true;
+        }
+
+        // first = false;
+    }
+
+}
+
+
 void ObjReader::draw() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vinx_);
@@ -194,6 +263,9 @@ void ObjReader::draw() {
     // Tekstuurikoordinaatit structissa 6:n floattia alun jälkeen
     glTexCoordPointer(2, GL_FLOAT, sizeof (GLVertex), (char*)NULL + 6 * sizeof(float));
 
+    glEnableClientState(GL_COLOR_ARRAY);
+    glColorPointer(4, GL_FLOAT, sizeof (GLVertex), (char*)NULL + 8 * sizeof(float));
+
     glDrawElements(GL_TRIANGLES, 3 * faces_.size(), GL_UNSIGNED_INT, NULL);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -202,6 +274,7 @@ void ObjReader::draw() {
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
 
     if (drawFaceCenters_ || drawNormals_) {
         if (drawNormals_) glBegin(GL_LINES);
