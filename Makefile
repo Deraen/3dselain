@@ -1,6 +1,5 @@
 # objektitiedostot
-SRC = main.cc light.cc \
- camera.cc matrix.cc objreader.cc debug.cc texture.cc
+SRC = main.cc light.cc camera.cc matrix.cc objreader.cc debug.cc texture.cc
 OBJS = $(SRC:.cc=.o)
 
 CXX = LC_ALL=C g++

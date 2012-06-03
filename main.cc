@@ -59,6 +59,7 @@ using std::string;
 #include "drawable.hh"
 #include "texture.hh"
 #include "objreader.hh"
+#include "animated.hh"
 #include "light.hh"
 
 // --- VAKIOT ---
@@ -80,7 +81,6 @@ bool collisionDetection_ = true;
 double secondsSinceStart_ = 0.0; // hyvin epätarkka arvio (glutTimer...)
 map<string, Texture*> textures_;
 vector<Drawable*> objects_;
-Drawable* kasi_;
 
 // --- TEXTUURIT ---
 void addTexture(const string& key, const string& filename) {
@@ -153,11 +153,6 @@ void init() {
         buttons_[i] = false;
     }
 
-    // GlsOpen();
-
-    // glEnable(GL_SAMPLE_COVERAGE);
-    // glSampleCoverage(GL_SAMPLE_COVERAGE, GLboolean invert)
-
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
     glEnable(GL_DEPTH_TEST);  // Z-testi
 
@@ -165,24 +160,14 @@ void init() {
     glCullFace(GL_FRONT);
     glFrontFace(GL_CW);
 
-    // glSampleCoverage(0.1, GL_FALSE);
     glEnable(GL_MULTISAMPLE);
-    glEnable(GL_MULTISAMPLE_ARB);
-    glEnable(GL_SAMPLE_ALPHA_TO_ONE_ARB);
-
-    int samples = 0;
-    glGetIntegerv(GL_SAMPLE_COVERAGE_VALUE, &samples);
-    Debug::start()[1] << "GL_SAMPLE_COVERAGE_VALUE: " << samples << Debug::end();
 
     glEnable(GL_LIGHTING);
     glEnable(GL_COLOR_MATERIAL);
     glShadeModel(GL_SMOOTH);  // Sävytys: GL_FLAT / GL_SMOOTH
 
-    glEnable(GL_MULTISAMPLE);
-
-    addTexture("stone", "tex/stone.tga");
-    addTexture("stonewall", "tex/stonewall.tga");
-    // kasi_ = new Kasi;
+    // addTexture("stone", "tex/stone.tga");
+    // addTexture("stonewall", "tex/stonewall.tga");
     objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-001.obj"));
     objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-002.obj"));
     objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-004.obj"));
@@ -206,7 +191,6 @@ void destroy() {
     for (unsigned int i = 0; i < objects_.size(); ++i) {
         delete objects_.at(i);
     }
-    // delete kasi_;
 }
 
 void handleKey(unsigned char key, int, int) {
@@ -235,9 +219,6 @@ void display() {
     // nopea patentti jolla käsi piirretään sojottamaan ulos näytöstä
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    // kasi_->draw();
-
-    // GlsUse(0);
 
     camera_.set();
 
@@ -276,8 +257,6 @@ void handleKeys() {
     if (keys_['s']) camera_.move(1);
     if (keys_['a']) camera_.strafe(-1);
     if (keys_['d']) camera_.strafe(1);
-    // if (keys_['y']) camera_.moveHeight(1);
-    // if (keys_['h']) camera_.moveHeight(-1);
     // Yhteenlasketut siirrot
     Vec3 movement = camera_.getMovement();
 
@@ -291,11 +270,6 @@ void handleKeys() {
     // Suoritetaan muutettu siirto
     camera_.applyMovement(movement);
 
-    // if (keys_['w']) camera_.pitch(-1);
-    // if (keys_['s']) camera_.pitch(1);
-    // if (keys_['a']) camera_.heading(1);
-    // if (keys_['d']) camera_.heading(-1);
-
     // oikea hiiren painike
     if (buttons_[GLUT_RIGHT_BUTTON]) {
         double w = static_cast<double>(windowWidth_) / 2;
@@ -306,28 +280,6 @@ void handleKeys() {
         camera_.heading(heading);
         camera_.pitch(pitch);
         glutWarpPointer(windowWidth_ / 2, windowHeight_ / 2);
-    }
-
-    // VOIMA
-    if (buttons_[GLUT_MIDDLE_BUTTON]) {
-        // Cube* nearest = NULL;
-        // float nearestDistance = 0.0;
-        // for (unsigned int i = 0; i < objects_.size(); ++i) {
-        //     Cube* cube = dynamic_cast<Cube*>(objects_.at(i));
-        //     if (cube != NULL) {
-        //         float distance = 0.0;
-        //         if (cube->rayCollision(camera_.getPos(), camera_.getVector(), distance) 
-        //          && (nearest == NULL || distance < nearestDistance)) {
-        //             nearest = cube;
-        //             nearestDistance = distance;
-        //         }
-        //     }
-        // }
-
-        // if (nearest != NULL) {
-        //     // Debug::start() << "Kuutio edessäpäin!" << Debug::end();
-        //     nearest->useTheForce(secondsSinceStart_);
-        // }
     }
 }
 
@@ -379,7 +331,7 @@ void animate(int a = 0) {
 int main(int argc, char *argv[]) {
     // Alustetan GLUT ja luodaan ikkuna
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB | GLUT_MULTISAMPLE);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
 
     glutInitWindowPosition(0, 0);
     glutInitWindowSize(DEF_WINDOW_WIDTH, DEF_WINDOW_HEIGHT);
