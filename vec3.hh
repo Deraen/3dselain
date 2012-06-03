@@ -7,7 +7,7 @@
 #include "debug.hh"
 
 struct Vec3 {
-    Vec3(float x_, float y_, float z_):
+    Vec3(double x_, double y_, double z_):
         x(x_), y(y_), z(z_) {}
 
     Vec3& operator +=(const Vec3& b) {
@@ -24,14 +24,14 @@ struct Vec3 {
         return *this;
     }
 
-    Vec3& operator /=(const float b) {
+    Vec3& operator /=(const double b) {
         x /= b;
         y /= b;
         z /= b;
         return *this;
     }
 
-    Vec3 operator /(const float b) const {
+    Vec3 operator /(const double b) const {
         return Vec3(x / b,
                     y / b,
                     z / b);
@@ -49,7 +49,7 @@ struct Vec3 {
                     z - b.z);
     }
 
-    Vec3 operator *(const float b) const {
+    Vec3 operator *(const double b) const {
         return Vec3(b * x, b * y, b * z);
     }
 
@@ -60,11 +60,11 @@ struct Vec3 {
                     x * b.y - y * b.x);
     }
 
-    float dot(const Vec3& b) const {
+    double dot(const Vec3& b) const {
         return x * b.x + y * b.y + z * b.z;
     }
 
-    Vec3& operator *=(const float b) {
+    Vec3& operator *=(const double b) {
         x *= b;
         y *= b;
         z *= b;
@@ -82,11 +82,11 @@ struct Vec3 {
         return debug;
     }
 
-    float length() const {
+    double length() const {
         return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
     }
 
-    float distanceToPlane(const Vec3& normal, const float d) {
+    double distanceToPlane(const Vec3& normal, const double d) {
         return normal.x * x + normal.y * y + normal.z * z + d;
     }
 
@@ -97,9 +97,9 @@ struct Vec3 {
         return *this;
     }
 
-    float x;
-    float y;
-    float z;
+    double x;
+    double y;
+    double z;
 };
 
 #endif
