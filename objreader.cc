@@ -20,7 +20,7 @@ using std::map;
 
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-#include <GL/glut.h>
+// #include <GL/glut.h>
 
 #include "objreader.hh"
 #include "debug.hh"

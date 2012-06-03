@@ -5,7 +5,7 @@ OBJS = $(SRC:.cc=.o)
 CXX = LC_ALL=C g++
 CXXDEP = g++
 CXXFLAGS = -Wall -pedantic -Werror
-LIBS = -lglut -lGL -lGLU -lm
+LIBS = -lGL -lglfw -lm
 EXE = ohjelma
 
 default: $(EXE)

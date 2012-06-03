@@ -5,7 +5,7 @@ using std::endl;
 
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-#include <GL/glut.h>
+// #include <GL/glut.h>
 #include "common.hh"
 #include "vec3.hh"
 

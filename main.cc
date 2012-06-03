@@ -53,7 +53,7 @@ using std::string;
 // Define jotain jänniä juttuja varten
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-#include <GL/glut.h>
+#include <GL/glfw.h>
 
 #include "camera.hh"
 #include "drawable.hh"
@@ -72,15 +72,17 @@ const unsigned int NUM_OF_BUTTONS = 3;
 
 // --- GLOBAALIT ---
 Camera camera_(6600.0, 20.0, -4800.0);
-bool keys_[256];
-bool buttons_[3];
-unsigned int windowWidth_, windowHeight_;
 int dX_, dY_, oldX_, oldY_;
 bool wireframe_ = false;
 bool collisionDetection_ = true;
-double secondsSinceStart_ = 0.0; // hyvin epätarkka arvio (glutTimer...)
 map<string, Texture*> textures_;
 vector<Drawable*> objects_;
+
+namespace {
+    float divide(float a, float b) {
+        return (a + 1 / b) / b;
+    }
+}
 
 // --- TEXTUURIT ---
 void addTexture(const string& key, const string& filename) {
@@ -114,7 +116,7 @@ public:
 
     void draw() {
         glTranslatef(position[0], position[1], position[2]);
-        glutSolidSphere(2.0, 16, 16);
+        // glutSolidSphere(2.0, 16, 16);
 
         Light::draw();
     }
@@ -136,8 +138,8 @@ public:
 
     void draw() {
         // hyödynnetään globaaleja rumasti...
-        if (buttons_[GLUT_MIDDLE_BUTTON]) {
-            glRotatef(5 * sin(secondsSinceStart_ * 3), 1.0, 0.0, 0.0);
+        if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE)) {
+            glRotatef(5 * sin(glfwGetTime() * 3), 1.0, 0.0, 0.0);
         }
 
         ObjReader::draw();
@@ -146,13 +148,6 @@ private:
 };
 
 void init() {
-    for (unsigned int i = 0; i <= NUM_OF_KEYS; ++i) {
-        keys_[i] = false;
-    }
-    for (unsigned int i = 0; i <= NUM_OF_BUTTONS; ++i) {
-        buttons_[i] = false;
-    }
-
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
     glEnable(GL_DEPTH_TEST);  // Z-testi
 
@@ -193,19 +188,15 @@ void destroy() {
     }
 }
 
-void handleKey(unsigned char key, int, int) {
-    if (key == '<') wireframe_ = !wireframe_;
-    if (key == 'z') ObjReader::drawNormals_ = !ObjReader::drawNormals_;
-    if (key == 'x') ObjReader::drawFaceCenters_ = !ObjReader::drawFaceCenters_;
-    if (key == 'c') Texture::enabled = !Texture::enabled;
-    if (key == 'v') Debug::start()[1] << "Kameran koordinaatti " << camera_.getPos() << Debug::end();
-    if (key == 'b') collisionDetection_ = !collisionDetection_;
-    keys_[key] = true;
-}
-
-void handleKeyRelease(unsigned char key, int, int) {
-
-    keys_[key] = false;
+void handleKey(int key, int action) {
+    if (action == GLFW_PRESS) {
+        if (key == '1') wireframe_ = !wireframe_;
+        if (key == '2') ObjReader::drawNormals_ = !ObjReader::drawNormals_;
+        if (key == '3') ObjReader::drawFaceCenters_ = !ObjReader::drawFaceCenters_;
+        if (key == '4') Texture::enabled = !Texture::enabled;
+        if (key == '5') Debug::start()[1] << "Kameran koordinaatti " << camera_.getPos() << Debug::end();
+        if (key == '6') collisionDetection_ = !collisionDetection_;
+    }
 }
 
 void display() {
@@ -214,7 +205,15 @@ void display() {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, static_cast<float>(windowWidth_) / static_cast<float>(windowHeight_), 1, 500);
+
+    int w, h;
+    glfwGetWindowSize(&w, &h);
+    float aspect = static_cast<float>(w) / h;
+    float fovY = 45.0;
+    float fH = tan(fovY / 360 * PI) * 1;
+    float fW = fH * aspect;
+
+    glFrustum(-fW, fW, -fH, fH, 1, 500);
 
     // nopea patentti jolla käsi piirretään sojottamaan ulos näytöstä
     glMatrixMode(GL_MODELVIEW);
@@ -222,8 +221,8 @@ void display() {
 
     camera_.set();
 
-    if (wireframe_) glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); // wireframe
-    else glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+    if (wireframe_) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe
+    else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for (unsigned int i = 0; i < objects_.size(); ++i) {
         glPushMatrix();
 
@@ -232,7 +231,7 @@ void display() {
         // Jos piirrettävä toteuttaa Animated luokan niin kutsutaan sen
         // animate funktiota joka esim. siirtää sen sijaintia
         Animated* animate = dynamic_cast<Animated*>(obj);
-        if (animate != NULL) animate->animate(secondsSinceStart_);
+        if (animate != NULL) animate->animate(glfwGetTime());
 
         obj->draw();
 
@@ -240,27 +239,19 @@ void display() {
     }
 
     // Vaihdetaan piirtopuskuri ja näkyvä puskuri
-    glutSwapBuffers();
-}
-
-void resize(int newWidth, int newHeight) {
-    glViewport(0, 0, newWidth, newHeight);
-    windowWidth_ = newWidth;
-    windowHeight_ = newHeight;
+    glfwSwapBuffers();
 }
 
 void handleKeys() {
-    if (keys_['1']) exit(0); // hmmm
-
     // Alla olevat siirrot tallentuvat kameralle
-    if (keys_['w'] || buttons_[GLUT_LEFT_BUTTON]) camera_.move(-1);
-    if (keys_['s']) camera_.move(1);
-    if (keys_['a']) camera_.strafe(-1);
-    if (keys_['d']) camera_.strafe(1);
+    if (glfwGetKey('W') || glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT)) camera_.move(-1);
+    if (glfwGetKey('S')) camera_.move(1);
+    if (glfwGetKey('A')) camera_.strafe(-1);
+    if (glfwGetKey('D')) camera_.strafe(1);
     // Yhteenlasketut siirrot
     Vec3 movement = camera_.getMovement();
 
-    if (keys_[' ']) movement += Vec3(0.0, 1.0, 0.0);
+    if (glfwGetKey(' ')) movement += Vec3(0.0, 1.0, 0.0);
     // Ollaanko törmäämässä johonkin?
     // törmäys päivittää liike vektoria törmäyksen mukaisesti
     for (unsigned int i = 0; i < objects_.size() && collisionDetection_; ++i) {
@@ -270,90 +261,83 @@ void handleKeys() {
     // Suoritetaan muutettu siirto
     camera_.applyMovement(movement);
 
-    // oikea hiiren painike
-    if (buttons_[GLUT_RIGHT_BUTTON]) {
-        double w = static_cast<double>(windowWidth_) / 2;
-        double h = static_cast<double>(windowHeight_) / 2;
+    if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT)) {
+        int x, y;
+        glfwGetWindowSize(&x, &y);
         // 3 astetta
-        double heading = -dX_ / w * 3.0;
-        double pitch   = -dY_ / h * 3.0;
+        double heading = -dX_ / divide(x, 2) * 7.0;
+        double pitch   = -dY_ / divide(y, 2) * 7.0;
+        dX_ = 0;
+        dY_ = 0;
         camera_.heading(heading);
         camera_.pitch(pitch);
-        glutWarpPointer(windowWidth_ / 2, windowHeight_ / 2);
+        glfwGetWindowSize(&x, &y);
+        glfwSetMousePos(x / 2, y / 2);
     }
 }
 
-void mouse(int button, int state, int x, int y) {
-    if (button < GLUT_LEFT_BUTTON
-     || button > GLUT_RIGHT_BUTTON) return;
-
-    if (state == GLUT_DOWN) {
-        buttons_[button] = true;
-        if (button == GLUT_RIGHT_BUTTON) {
+void mouse(int key, int action) {
+    if (key == GLFW_MOUSE_BUTTON_RIGHT) {
+        if (action == GLFW_PRESS) {
             // talletaan hiiren sijainti
+            int x, y;
+            glfwGetMousePos(&x, &y);
             oldX_ = x;
             oldY_ = y;
             dX_ = 0;
             dY_ = 0;
-            // hiiri keskelle jotta helpompi pyörittää
-            glutWarpPointer(windowWidth_ / 2, windowHeight_ / 2);
-        }
-    } else if (state == GLUT_UP) {
-        buttons_[button] = false;
-        if (button == GLUT_RIGHT_BUTTON) {
-            // palautetaa hiiri vanhaan paikkaan
-            glutWarpPointer(oldX_, oldY_);
+            glfwGetWindowSize(&x, &y);
+            glfwSetMousePos(divide(x, 2), divide(y, 2));
+            // glfwDisable( GLFW_MOUSE_CURSOR );
+        } else if (action == GLFW_RELEASE) {
+            glfwSetMousePos(oldX_, oldY_);
+            // glfwEnable( GLFW_MOUSE_CURSOR );
         }
     }
 }
 
 void motion(int x, int y) {
-    if (buttons_[GLUT_RIGHT_BUTTON]) {
+    if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT)) {
         // talletetaan koordinaatit jotta voidaan kääntää kameraa
         // kun ensikerran piirretään ruutua
-        double w = static_cast<double>(windowWidth_) / 2;
-        double h = static_cast<double>(windowHeight_) / 2;
-        dX_ = 2.0 * (x - w);
-        dY_ = 2.0 * (y - h);
+        int w, h;
+        glfwGetWindowSize(&w, &h);
+        dX_ = x - divide(w, 2);
+        dY_ = y - divide(h, 2);
+
+        glfwGetWindowSize(&w, &h);
+        glfwSetMousePos(divide(w, 2), divide(h, 2));
     }
 }
 
-void animate(int a = 0) {
+void animate() {
     handleKeys();
-    glutPostRedisplay();
-
-    secondsSinceStart_ += static_cast<double>(MS_PER_FRAME) / pow(10, 3);
-
-    // pidetään esim. nois 60fps piirtämällä ruutuun vain esim. 15ms välein
-    glutTimerFunc(MS_PER_FRAME, animate, 0);
+    display();
 }
 
 int main(int argc, char *argv[]) {
-    // Alustetan GLUT ja luodaan ikkuna
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
+    int running = GL_TRUE;
 
-    glutInitWindowPosition(0, 0);
-    glutInitWindowSize(DEF_WINDOW_WIDTH, DEF_WINDOW_HEIGHT);
-    glutCreateWindow("...GL");
-
-    glutIgnoreKeyRepeat(GLUT_KEY_REPEAT_ON);
+    glfwInit();
+    glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
+    glfwOpenWindow(DEF_WINDOW_WIDTH, DEF_WINDOW_HEIGHT, 8, 8, 8, 8, 8, 0, GLFW_WINDOW);
+    glfwSetWindowTitle("JAA");
 
     init();
 
-    glutKeyboardFunc(handleKey);
-    glutKeyboardUpFunc(handleKeyRelease);
+    glfwSetKeyCallback(handleKey);
 
-    glutDisplayFunc(display);
-    glutMouseFunc(mouse);
-    glutMotionFunc(motion);
-    glutReshapeFunc(resize);
-    // glutIdleFunc(animate);
-    animate();
+    glfwSetMouseButtonCallback(mouse);
+    glfwSetMousePosCallback(motion);
 
-    glutMainLoop();
+    while (running) {
+        animate();
+
+        running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
+    }
 
     destroy();
+    glfwTerminate();
 
     return 0;
 }
