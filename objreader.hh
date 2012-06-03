@@ -24,12 +24,12 @@ struct Vec4 {
 
 #pragma pack(1)
 struct GLVertex {
-    float x, y, z;
+    double x, y, z;
     float nx, ny, nz;
     float u, v;
     float r, g, b, a;
 
-    GLVertex(float x_, float y_, float z_):
+    GLVertex(double x_, double y_, double z_):
         x(x_), y(y_), z(z_),
         nx(0.0), ny(0.0), nz(0.0),
         u(0.0), v(0.0),
@@ -60,7 +60,7 @@ struct Face {
     Vec3* b;
     Vec3* c;
     Vec3 normal;
-    float d;
+    double d;
     Vec3 min;
     Vec3 max;
     // Face* next;
@@ -93,15 +93,15 @@ struct Face {
         Vec3 v1 = *b - *a;
         Vec3 v2 = point - *a;
 
-        float dot00 = v0.dot(v0);
-        float dot01 = v0.dot(v1);
-        float dot02 = v0.dot(v2);
-        float dot11 = v1.dot(v1);
-        float dot12 = v1.dot(v2);
+        double dot00 = v0.dot(v0);
+        double dot01 = v0.dot(v1);
+        double dot02 = v0.dot(v2);
+        double dot11 = v1.dot(v1);
+        double dot12 = v1.dot(v2);
 
-        float invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01);
-        float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-        float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+        double invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01);
+        double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+        double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
         return (u >= 0) && (v >= 0) && (u + v < 1);
     }
@@ -109,7 +109,7 @@ struct Face {
 
 class ObjReader: public Drawable {
 public:
-    ObjReader(const char* filename);
+    ObjReader(const std::string& dir, const std::string& filename);
     ~ObjReader();
 
     virtual void draw();
@@ -121,7 +121,7 @@ public:
 
 private:
 
-    void readMaterials(const std::string& filename);
+    void readMaterials(const std::string& dir, const std::string& filename);
 
     GLuint vbo_;
     GLuint vinx_;

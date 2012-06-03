@@ -70,7 +70,7 @@ const unsigned int NUM_OF_KEYS = sizeof(char);
 const unsigned int NUM_OF_BUTTONS = 3;
 
 // --- GLOBAALIT ---
-Camera camera_(0.0, 0.5, 0.0);
+Camera camera_(6600.0, 20.0, -4800.0);
 bool keys_[256];
 bool buttons_[3];
 unsigned int windowWidth_, windowHeight_;
@@ -126,7 +126,7 @@ public:
 class Kasi : public ObjReader {
 public:
     Kasi():
-        ObjReader("obj/kasi.obj")
+        ObjReader("obj", "kasi.obj")
     {}
     ~Kasi() {}
 
@@ -153,6 +153,11 @@ void init() {
         buttons_[i] = false;
     }
 
+    // GlsOpen();
+
+    // glEnable(GL_SAMPLE_COVERAGE);
+    // glSampleCoverage(GL_SAMPLE_COVERAGE, GLboolean invert)
+
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
     glEnable(GL_DEPTH_TEST);  // Z-testi
 
@@ -160,14 +165,35 @@ void init() {
     glCullFace(GL_FRONT);
     glFrontFace(GL_CW);
 
+    // glSampleCoverage(0.1, GL_FALSE);
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_MULTISAMPLE_ARB);
+    glEnable(GL_SAMPLE_ALPHA_TO_ONE_ARB);
+
+    int samples = 0;
+    glGetIntegerv(GL_SAMPLE_COVERAGE_VALUE, &samples);
+    Debug::start()[1] << "GL_SAMPLE_COVERAGE_VALUE: " << samples << Debug::end();
+
     glEnable(GL_LIGHTING);
     glEnable(GL_COLOR_MATERIAL);
     glShadeModel(GL_SMOOTH);  // Sävytys: GL_FLAT / GL_SMOOTH
 
+    glEnable(GL_MULTISAMPLE);
+
     addTexture("stone", "tex/stone.tga");
     addTexture("stonewall", "tex/stonewall.tga");
-    kasi_ = new Kasi;
-    objects_.push_back(new ObjReader("obj/versio11.obj"));
+    // kasi_ = new Kasi;
+    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-001.obj"));
+    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-002.obj"));
+    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-004.obj"));
+    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-029.obj"));
+    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-030.obj"));
+    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-031.obj"));
+    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-002-027.obj"));
+    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-002-028.obj"));
+    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-002-032.obj"));
+    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "pa-001-g100_001.obj"));
+    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "st-keskusta.obj"));
     objects_.push_back(new Sun);
 }
 
@@ -180,7 +206,7 @@ void destroy() {
     for (unsigned int i = 0; i < objects_.size(); ++i) {
         delete objects_.at(i);
     }
-    delete kasi_;
+    // delete kasi_;
 }
 
 void handleKey(unsigned char key, int, int) {
@@ -204,12 +230,14 @@ void display() {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, static_cast<float>(windowWidth_) / static_cast<float>(windowHeight_), 0.01, 1000);
+    gluPerspective(45.0, static_cast<float>(windowWidth_) / static_cast<float>(windowHeight_), 1, 500);
 
     // nopea patentti jolla käsi piirretään sojottamaan ulos näytöstä
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    kasi_->draw();
+    // kasi_->draw();
+
+    // GlsUse(0);
 
     camera_.set();
 
@@ -241,19 +269,19 @@ void resize(int newWidth, int newHeight) {
 }
 
 void handleKeys() {
-    if (keys_['q']) exit(0); // hmmm
+    if (keys_['1']) exit(0); // hmmm
 
     // Alla olevat siirrot tallentuvat kameralle
-    if (keys_['i'] || buttons_[GLUT_LEFT_BUTTON]) camera_.move(-0.1);
-    if (keys_['k']) camera_.move(0.1);
-    if (keys_['j']) camera_.strafe(-0.1);
-    if (keys_['l']) camera_.strafe(0.1);
-    if (keys_['y']) camera_.moveHeight(0.1);
-    if (keys_['h']) camera_.moveHeight(-0.1);
+    if (keys_['w'] || buttons_[GLUT_LEFT_BUTTON]) camera_.move(-1);
+    if (keys_['s']) camera_.move(1);
+    if (keys_['a']) camera_.strafe(-1);
+    if (keys_['d']) camera_.strafe(1);
+    // if (keys_['y']) camera_.moveHeight(1);
+    // if (keys_['h']) camera_.moveHeight(-1);
     // Yhteenlasketut siirrot
     Vec3 movement = camera_.getMovement();
 
-    if (keys_[' ']) movement += Vec3(0.0, 0.1, 0.0);
+    if (keys_[' ']) movement += Vec3(0.0, 1.0, 0.0);
     // Ollaanko törmäämässä johonkin?
     // törmäys päivittää liike vektoria törmäyksen mukaisesti
     for (unsigned int i = 0; i < objects_.size() && collisionDetection_; ++i) {
@@ -263,10 +291,10 @@ void handleKeys() {
     // Suoritetaan muutettu siirto
     camera_.applyMovement(movement);
 
-    if (keys_['w']) camera_.pitch(-1);
-    if (keys_['s']) camera_.pitch(1);
-    if (keys_['a']) camera_.heading(1);
-    if (keys_['d']) camera_.heading(-1);
+    // if (keys_['w']) camera_.pitch(-1);
+    // if (keys_['s']) camera_.pitch(1);
+    // if (keys_['a']) camera_.heading(1);
+    // if (keys_['d']) camera_.heading(-1);
 
     // oikea hiiren painike
     if (buttons_[GLUT_RIGHT_BUTTON]) {
@@ -333,8 +361,8 @@ void motion(int x, int y) {
         // kun ensikerran piirretään ruutua
         double w = static_cast<double>(windowWidth_) / 2;
         double h = static_cast<double>(windowHeight_) / 2;
-        dX_ = (x - w);
-        dY_ = (y - h);
+        dX_ = 2.0 * (x - w);
+        dY_ = 2.0 * (y - h);
     }
 }
 
@@ -351,7 +379,8 @@ void animate(int a = 0) {
 int main(int argc, char *argv[]) {
     // Alustetan GLUT ja luodaan ikkuna
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB | GLUT_MULTISAMPLE);
+
     glutInitWindowPosition(0, 0);
     glutInitWindowSize(DEF_WINDOW_WIDTH, DEF_WINDOW_HEIGHT);
     glutCreateWindow("...GL");

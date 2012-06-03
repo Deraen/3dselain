@@ -4,6 +4,7 @@ using std::string;
 using std::ifstream;
 #include <sstream>
 using std::istringstream;
+using std::ostringstream;
 #include <iostream>
 using std::cout;
 using std::endl;
@@ -43,7 +44,7 @@ Olettaa että tiedostossa on vain yksi objekti.
 
 Törmäysten etsintä tuntuu toimivan tarpeaksi nopeasti ilman kdtree.
 */
-ObjReader::ObjReader(const char* filename):
+ObjReader::ObjReader(const string& dir, const string& filename):
     vbo_(0),
     vinx_(0),
     faces_(),
@@ -59,23 +60,25 @@ ObjReader::ObjReader(const char* filename):
     Vec4 used_color(0.0, 0.0, 0.0, 1.0);
 
     // map<string, Vec4> colors;
+    string path = dir;
+    path.append("/");
+    path.append(filename);
 
-    ifstream file(filename);
+    ifstream file(path.c_str());
 
     bool stop = false;
     bool first = true;
     while(!stop && file) {
         string line;
         getline(file, line);
-        if (line.length() == 0
-         || line.at(0) == '#') continue; // tyhjä rivi tai kommentti mennään seuraavaan
+        if (line.length() == 0 || line.at(0) == '#' || line.at(0) == '\n') continue; // tyhjä rivi tai kommentti mennään seuraavaan
 
         istringstream lines(line);
         string eka;
         lines >> eka;
 
         if (eka == "v") { // vertexit
-            float x, y, z;
+            double x, y, z;
             lines >> x >> y >> z;
             glVertexes.push_back(GLVertex(x, y, z));
 
@@ -134,11 +137,12 @@ ObjReader::ObjReader(const char* filename):
             glFaces.push_back(GLFace(v[0], v[1], v[2]));
         } else if (eka == "s") { // shading
         } else if (eka == "o") { // objekti
+        } else if (eka == "g") {
         } else if (eka == "mtllib") {
             string material_file;
             lines >> material_file;
 
-            readMaterials(material_file);
+            readMaterials(dir, material_file);
         } else if (eka == "usemtl") { // pitäis käyttää jotai materiaalia
             string color_name;
             lines >> color_name;
@@ -155,7 +159,8 @@ ObjReader::ObjReader(const char* filename):
                 }
             }
         } else {
-            Debug::start()[3] << "Tunnistamaton rivi .obj tiedostossa " << eka << Debug::end();
+            Debug::start()[3] << "Tunnistamaton rivi .obj tiedostossa \"" << eka << "\"" << Debug::end();
+            Debug::start()[2] << line << Debug::end();
             stop = true;
         }
 
@@ -205,11 +210,15 @@ ObjReader::~ObjReader() {
 }
 
 
-void ObjReader::readMaterials(const string& filename) {
+void ObjReader::readMaterials(const std::string& dir, const string& filename) {
+
+    string path = dir;
+    path.append("/");
+    path.append(filename);
 
     Debug::start()[2] << "Luetaan värit tiedostosta " << filename << Debug::end();
 
-    ifstream file(filename.c_str());
+    ifstream file(path.c_str());
 
     bool stop = false;
     // bool first = true;
@@ -228,14 +237,20 @@ void ObjReader::readMaterials(const string& filename) {
             if (!(lines >> name)) {
                 name = "default";
             }
-            Debug::start()[1] << "Löydetty väri " << name << Debug::end();
+            // Debug::start()[1] << "Löydetty väri " << name << Debug::end();
         } else if (eka == "Kd") { // Diffuusi väri.
             float r, g, b, a;
             a = 1.0;
             lines >> r >> g >> b;
 
             colors_[name] = new Vec4(r, g, b, a);
-        } else if (eka == "map_Kd" || eka == "Ns" || eka == "Ka" || eka == "Ks" || eka == "Ni" || eka == "d" || eka == "illum") {
+        } else if (eka == "Ka") {
+            // float r, g, b, a;
+            // a = 1.0;
+            // lines >> r >> g >> b;
+
+            // colors_[name] = new Vec4(r, g, b, a);
+        } else if (eka == "map_Kd" || eka == "Ns" || eka == "Ks" || eka == "Ni" || eka == "d" || eka == "illum" || eka == "Tr" || eka == "Tf" || eka == "Kf" || eka == "Ke" || eka == "map_bump") {
         } else {
             Debug::start()[3] << "Tunnistamaton rivi .mtl tiedostossa " << eka << Debug::end();
             stop = true;
@@ -253,18 +268,18 @@ void ObjReader::draw() {
     // glInterleavedArrays GL_N3F_V3F / GL_T2F_N3F_V3F
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, sizeof (GLVertex), NULL);
+    glVertexPointer(3, GL_DOUBLE, sizeof (GLVertex), NULL);
 
     glEnableClientState(GL_NORMAL_ARRAY);
     // Normaalit structissa 3:n floatin jälkeen
-    glNormalPointer(GL_FLOAT, sizeof (GLVertex), (char*)NULL + 3 * sizeof(float));
+    glNormalPointer(GL_FLOAT, sizeof (GLVertex), (char*)NULL + 3 * sizeof(double));
 
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     // Tekstuurikoordinaatit structissa 6:n floattia alun jälkeen
-    glTexCoordPointer(2, GL_FLOAT, sizeof (GLVertex), (char*)NULL + 6 * sizeof(float));
+    glTexCoordPointer(2, GL_FLOAT, sizeof (GLVertex), (char*)NULL + 3 * sizeof(double) + 3 * sizeof(float));
 
     glEnableClientState(GL_COLOR_ARRAY);
-    glColorPointer(4, GL_FLOAT, sizeof (GLVertex), (char*)NULL + 8 * sizeof(float));
+    glColorPointer(4, GL_FLOAT, sizeof (GLVertex), (char*)NULL + 3 * sizeof(double) + 5 * sizeof(float));
 
     glDrawElements(GL_TRIANGLES, 3 * faces_.size(), GL_UNSIGNED_INT, NULL);
 
@@ -287,11 +302,11 @@ void ObjReader::draw() {
         for (unsigned int i = 0; i < faces_.size(); ++i) {
             Face* f = faces_.at(i);
             Vec3 a(*(f->a) / 3.0 + *(f->b) / 3.0 + *(f->c) / 3.0);
-            glVertex3f(a.x, a.y, a.z);
+            glVertex3d(a.x, a.y, a.z);
 
             if (drawNormals_) {
                 Vec3 b(a + f->normal);
-                glVertex3f(b.x, b.y, b.z);
+                glVertex3d(b.x, b.y, b.z);
             }
         }
         glEnd();
@@ -311,7 +326,7 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement) {
         return false;
     }
 
-    float nearestDistance = 0.0;
+    double nearestDistance = 0.0;
     Face* nearest = NULL;
 
     Vec3 p(point + movement);
@@ -324,7 +339,7 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement) {
         if (p.inside(face->min, face->max)) {
 
             // etäisyys kohteesta tason lähimpään pisteeseen
-            float distance = p.distanceToPlane(face->normal, face->d);
+            double distance = p.distanceToPlane(face->normal, face->d);
 
             // kohde pistettä lähin piste tasolla
             Vec3 q(p - face->normal * distance);
@@ -348,7 +363,7 @@ bool ObjReader::collision(const Vec3& point, Vec3& movement) {
 
 
 bool ObjReader::rayCollision(const Vec3& point, const Vec3& ray, float& distance) {
-    float nearestDistance = 0.0;
+    double nearestDistance = 0.0;
     Face* nearest = NULL;
 
     // Debug::start() << "Ray " << ray << Debug::end();
@@ -360,9 +375,9 @@ bool ObjReader::rayCollision(const Vec3& point, const Vec3& ray, float& distance
     for (unsigned int i = 0; i < faces_.size(); ++i) {
         Face* face = faces_.at(i);
 
-        float npq = face->normal.dot(ray);
+        double npq = face->normal.dot(ray);
         if (npq != 0) {
-            float t = - (face->normal.dot(p) + face->d) / npq;
+            double t = - (face->normal.dot(p) + face->d) / npq;
             // säde leikkaa tason
             if (t >= 0) {
                 Vec3 intersect(point + ray * t);
