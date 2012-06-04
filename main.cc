@@ -1,47 +1,3 @@
-/*** OHJ-2700 exercise 3
-Name: Juho Teperi
-Number: 218197
-Email: juho.teperi@tut.fi
-***/
-
-/*
-Toteutetut jutut:
-- Liikkuminen ja kamera pitäisi toimia tosi hyvin.
-- Törmäystarkastus toimii tasaisilla pinnoilla hyvin.
-  Maastossa vähän nykivää.
-  Joissakin kulmissa, esimerkiksi "talon" jotkin nurkat, voi kamera mennä seinien läpi.
-  Johtuu varmaankin jotenkin siitä että siinä on myös maaston pintoja lähellä ja nyt törmätään molempiin.
-- Huoneita on muutama siinä laatikon mallisessa talossa muutama.
-- Esineitä on muutama mutta eivät ole kuutiota monipuolisempia.
-- Teksttuurit näyttävät järkeviltä maastossa ja muureissa.
-  Talossa tekstuurikoordinaatit ovat melko rikki, mutta jätin sen kuitenkin käyttöön
-  koska ilman tekstuuria talon sisällä ei meinaa nähdä missä seinät menevät.
-- Valaistus nyt ei ole kovin vaihtelevaa, lukuunottamatta "aurinkoa" joka kiertää
-  taivaalla.
-- Ohjelmassa voi käyttää Voimaa. Voimalla voi nostaa kuutioita hetkellisesti ilmaan.
-*/
-
-/*
-Hiirellä voi tehdä asioita:
-- Vasemmalla näppäimellä liikutaan eteenpäin (kuin 'i')
-- Keskinäppäimellä käytetään Voimaa, joka ainakin heiluttaa kättä ja saattaa
-  tehdä kameran edessä näkyville asioille jotakin.
-- Oikealla näppäimellä käännetään kameraa.
-
-Vaadittujen painikkeiden lisäksi:
-'<' - Wireframe päälle/pois.
-'Z' - Kolmioiden normaalien piirto.
-'X' - Kolmioiden keskipisteiden piirto.
-'C' - Tekstuurit pois ja päälle.
-'V' - Tulostaa kameran koordinaatit.
-'B' - Törmäystarkistus päälle ja pois.
-Space - Ylöspäin kamerasta riippumatta.
-
-Texturit:
-- Kivi: http://agf81.deviantart.com/art/Stone-Texture-Seamless-197981741 - Some rights reserved. This work is licensed under a Creative Commons Attribution 3.0 License.
-- Kiviseinä: http://agf81.deviantart.com/gallery/31629552#/d49w3ju - Some rights reserved. This work is licensed under a Creative Commons Attribution 3.0 License.
-*/
-
 #include <iostream>
 #include <vector>
 using std::vector;
@@ -315,6 +271,10 @@ void animate() {
     display();
 }
 
+void resize(int w, int h) {
+    glViewport(0, 0, w, h);
+}
+
 int main(int argc, char *argv[]) {
     int running = GL_TRUE;
 
@@ -329,6 +289,8 @@ int main(int argc, char *argv[]) {
 
     glfwSetMouseButtonCallback(mouse);
     glfwSetMousePosCallback(motion);
+
+    glfwSetWindowSizeCallback(resize);
 
     while (running) {
         animate();
