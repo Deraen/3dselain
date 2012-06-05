@@ -20,7 +20,9 @@ using std::map;
 
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-// #include <GL/glut.h>
+
+#include <assimp/assimp.hpp>
+#include <assimp/aiPostProcess.h> // Post processing flags
 
 #include "objreader.hh"
 #include "debug.hh"
@@ -52,6 +54,20 @@ ObjReader::ObjReader(const string& dir, const string& filename):
     max_(0.0, 0.0, 0.0),
     colors_()
     {
+
+    Assimp::Importer importer;
+
+    scene_ = importer.ReadFile(filename.c_str(),
+        aiProcess_CalcTangentSpace       |
+        aiProcess_Triangulate            |
+        aiProcess_JoinIdenticalVertices  |
+        aiProcess_SortByPType);
+
+    // Ei pitäisi olla rakentajassa
+    if(!scene_) {
+        Debug::start()[0] << importer.GetErrorString() << Debug::end();
+        return;
+    }
 
     vector<GLVertex> glVertexes;
     vector<Vec3> normals;

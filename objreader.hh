@@ -9,6 +9,9 @@
 
 #include <GL/gl.h>
 
+#include <assimp/assimp.hpp>
+#include <assimp/aiScene.h>       // Output data structure
+
 #include "vec3.hh"
 #include "debug.hh"
 #include "drawable.hh"
@@ -122,6 +125,8 @@ public:
 private:
 
     void readMaterials(const std::string& dir, const std::string& filename);
+
+    const aiScene* scene_;
 
     GLuint vbo_;
     GLuint vinx_;
