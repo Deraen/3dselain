@@ -13,7 +13,7 @@ public:
 
     ~Light();
 
-    void setPos(float x, float y, float z);
+    void setPos(float x, float y, float z, float w = 1.0);
 
     void setSpecular(GLfloat r, GLfloat g, GLfloat b);
 
@@ -21,13 +21,13 @@ public:
 
     void setDiffuse(GLfloat r, GLfloat g, GLfloat b);
 
-    void draw();
+    void draw() const;
 
-    virtual bool collision(const Vec3& point, Vec3& movement);
+    virtual bool collision(const Vec3& point, Vec3& movement) const;
 
 protected:
     GLenum n;
-    GLfloat position[3];
+    GLfloat position[4];
 private:
     static GLenum lightN_;
 

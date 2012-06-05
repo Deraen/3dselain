@@ -21,17 +21,18 @@ Light::Light():
     // glLightf(n, GL_QUADRATIC_ATTENUATION, 0.01);
 }
 
-bool Light::collision(const Vec3& point, Vec3& movement) {
+bool Light::collision(const Vec3& point, Vec3& movement) const {
     return false;
 }
 
 Light::~Light() {
 }
 
-void Light::setPos(float x, float y, float z) {
+void Light::setPos(float x, float y, float z, float w) {
     position[0] = x;
     position[1] = y;
     position[2] = z;
+    position[3] = w;
 }
 
 void Light::setSpecular(GLfloat r, GLfloat g, GLfloat b) {
@@ -55,7 +56,7 @@ void Light::setDiffuse(GLfloat r, GLfloat g, GLfloat b) {
     diffuse[3] = 1.0; //w
 }
 
-void Light::draw() {
+void Light::draw() const {
     glLightfv(n, GL_POSITION, position);
     glLightfv(n, GL_SPECULAR, specular);
     glLightfv(n, GL_AMBIENT, ambient);
