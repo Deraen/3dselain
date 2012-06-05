@@ -1,9 +1,7 @@
 #ifndef CAMERA_HH
 #define CAMERA_HH
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-// #include <GL/glut.h>
+#include <GL/glew.h>
 #include "common.hh"
 #include "vec3.hh"
 #include "matrix.hh"
@@ -25,7 +23,9 @@ public:
 
     void applyMovement(const Vec3& move);
 
-    void set();
+    // void set();
+    float* modelview() { return rot_.data(); }
+    float* projection(unsigned int w, unsigned int h);
 
     Vec3 getPos() const;
     Vec3 getVector() const;

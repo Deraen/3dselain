@@ -7,7 +7,7 @@
 #include <cmath>
 #include <map>
 
-#include <GL/gl.h>
+#include <GL/glew.h>
 
 #include <assimp/assimp.hpp>
 #include <assimp/aiScene.h>       // Output data structure
@@ -19,14 +19,14 @@
 
 #pragma pack(1)
 struct GLVertex {
-    double x, y, z;
+    float x, y, z;
     float nx, ny, nz;
-    float u, v;
+    // float u, v;
 
-    GLVertex(double x_, double y_, double z_):
+    GLVertex(float x_, float y_, float z_):
         x(x_), y(y_), z(z_),
-        nx(0.0), ny(0.0), nz(0.0),
-        u(0.0), v(0.0)
+        nx(0.0), ny(0.0), nz(0.0)//,
+        // u(0.0), v(0.0)
     {}
 
     void setNormal(float x_, float y_, float z_) {
@@ -34,7 +34,7 @@ struct GLVertex {
     }
 
     void setTexture(float u_, float v_) {
-        u = u_; v = v_;
+        // u = u_; v = v_;
     }
 };
 
@@ -54,7 +54,7 @@ struct Face {
     Vec3* b;
     Vec3* c;
     Vec3 normal;
-    double d;
+    float d;
     Vec3 min;
     Vec3 max;
 
@@ -101,8 +101,10 @@ private:
     bool loaded_;
     std::string filename_;
 
-    GLuint vbo_;
-    GLuint vinx_;
+    GLuint vao_;
+    GLuint vertices_buffer_;
+    // GLuint color_buffer_;
+    // GLuint vinx_;
     std::vector<Face*> faces_;
     std::vector<Mesh*> meshes_;
     std::vector<Material*> materials_;

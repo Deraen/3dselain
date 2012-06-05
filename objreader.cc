@@ -18,8 +18,7 @@ using std::pair;
 #include <map>
 using std::map;
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
+#include <GL/glew.h>
 
 #include <assimp/assimp.hpp>
 #include <assimp/aiPostProcess.h> // Post processing flags
@@ -32,16 +31,6 @@ using std::map;
 
 bool Scene::draw_normals_ = false;
 bool Scene::draw_face_centers_ = false;
-
-namespace {
-    unsigned int string2uint(const string& c) {
-        istringstream a(c);
-        unsigned int b = 0;
-        a >> b;
-        return b;
-    }
-
-}
 
 Face::Face(Vec3* a_, Vec3* b_, Vec3* c_):
     a(a_), b(b_), c(c_),
@@ -149,7 +138,6 @@ bool Mesh::load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, std::vec
 
 void Mesh::draw() const {
     // XXX: materiaali
-
     glDrawElements(GL_TRIANGLES, 3 * face_count_, GL_UNSIGNED_INT, (char*)NULL + start_face_ * sizeof(GLFace));
 }
 
@@ -159,8 +147,8 @@ void Mesh::draw() const {
 Scene::Scene(const string& filename):
     loaded_(false),
     filename_(filename),
-    vbo_(0),
-    vinx_(0),
+    vao_(0),
+    // vinx_(0),
     meshes_(),
     min_(0.0, 0.0, 0.0),
     max_(0.0, 0.0, 0.0)
@@ -199,21 +187,21 @@ void Scene::load() {
         const aiMaterial* mat = scene->mMaterials[i];
 
         aiColor3D color(0.0, 0.0, 0.0);
-        mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-        material->setDiffuse(color.r, color.g, color.b);
+        // mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+        // material->setDiffuse(color.r, color.g, color.b);
 
         mat->Get(AI_MATKEY_COLOR_AMBIENT, color);
         material->setAmbient(color.r, color.g, color.b);
 
-        mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
-        material->setSpecular(color.r, color.g, color.b);
+        // mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
+        // material->setSpecular(color.r, color.g, color.b);
 
-        mat->Get(AI_MATKEY_COLOR_EMISSIVE, color);
-        material->setEmission(color.r, color.g, color.b);
+        // mat->Get(AI_MATKEY_COLOR_EMISSIVE, color);
+        // material->setEmission(color.r, color.g, color.b);
 
-        float shininess = 0.0;
-        mat->Get(AI_MATKEY_SHININESS_STRENGTH, shininess);
-        material->setShinines(shininess);
+        // float shininess = 0.0;
+        // mat->Get(AI_MATKEY_SHININESS_STRENGTH, shininess);
+        // material->setShinines(shininess);
 
         materials_.push_back(material);
     }
@@ -240,15 +228,27 @@ void Scene::load() {
     Debug::start()[2] << "Luettiin " << gl_vertexes.size() << " vertexiä" << Debug::end();
     Debug::start()[2] << "Luettiin " << gl_faces.size() << " facea" << Debug::end();
 
-    glGenBuffers(1, &vbo_);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    glBufferData(GL_ARRAY_BUFFER, gl_vertexes.size() * sizeof(GLVertex), &gl_vertexes.front(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glGenVertexArrays(1, &vao_);
+    glBindVertexArray(vao_);
 
-    glGenBuffers(1, &vinx_);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vinx_);
+    glGenBuffers(1, &vertices_buffer_);
+    glBindBuffer(GL_ARRAY_BUFFER, vertices_buffer_);
+    glBufferData(GL_ARRAY_BUFFER, gl_vertexes.size() * sizeof(GLVertex), &gl_vertexes.front(), GL_STATIC_DRAW);
+
+    // in_position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), 0);
+    glEnableVertexAttribArray(0);
+
+    // in normal
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), (char*)0 + 3 * sizeof(double));
+    glEnableVertexAttribArray(1);
+
+    GLuint vinx;
+    glGenBuffers(1, &vinx);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vinx);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, gl_faces.size() * sizeof(GLFace), &gl_faces.front(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    glBindVertexArray(0);
 
     // Rakennetaan luetuista vertexeistä ja pinnoista omia vertexeitä ja pintoja
     // joilla vähän enempi ominaisuuksia. (törmäystarkistusta varten)
@@ -286,8 +286,7 @@ void Scene::unload() {
     }
     faces_.clear();
 
-    glDeleteBuffers(1, &vbo_);
-    glDeleteBuffers(1, &vinx_);
+    glDeleteVertexArrays(1, &vao_);
 }
 
 
@@ -297,59 +296,18 @@ Scene::~Scene() {
 
 
 void Scene::draw() const {
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vinx_);
-
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_DOUBLE, sizeof (GLVertex), NULL);
-
-    glEnableClientState(GL_NORMAL_ARRAY);
-    // Normaalit structissa 3:n floatin jälkeen
-    glNormalPointer(GL_FLOAT, sizeof (GLVertex), (char*)NULL + 3 * sizeof(double));
-
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    // Tekstuurikoordinaatit structissa 6:n floattia alun jälkeen
-    glTexCoordPointer(2, GL_FLOAT, sizeof (GLVertex), (char*)NULL + 3 * sizeof(double) + 3 * sizeof(float));
+    glBindVertexArray(vao_);
 
     for (unsigned int i = 0; i < meshes_.size(); ++i) {
         Mesh* mesh = meshes_.at(i);
-        materials_.at(mesh->materialIndex())->use();
+        // materials_.at(mesh->materialIndex())->use();
+        SolidMaterial* material = dynamic_cast<SolidMaterial*>(materials_.at(mesh->materialIndex()));
+        const GLfloat* color = material->diffuse();
+        glVertexAttrib3f(2, color[0], color[1], color[2]);
         mesh->draw();
-
-        if (Scene::draw_face_centers_ || Scene::draw_normals_) {
-            if (Scene::draw_normals_) {
-                glBegin(GL_LINES);
-            } else {
-                glBegin(GL_POINTS);
-            }
-
-            GLfloat diffuse[] = {1.0, 1.0, 1.0, 1.0};
-            glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse);
-            glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, diffuse);
-            // glBegin(GL_POINTS);
-            for (unsigned int i = mesh->firstFace(); i < mesh->firstFace() + mesh->faceCount(); ++i) {
-                Face* f = faces_.at(i);
-                Vec3 a(*(f->a) / 3.0 + *(f->b) / 3.0 + *(f->c) / 3.0);
-                glVertex3d(a.x, a.y, a.z);
-
-                if (Scene::draw_normals_) {
-                    Vec3 b(a + f->normal);
-                    glVertex3d(b.x, b.y, b.z);
-                }
-            }
-            glEnd();
-
-            GLfloat fuu[] = {0.0, 0.0, 0.0, 0.0};
-            glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, fuu);
-        }
     }
 
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
 

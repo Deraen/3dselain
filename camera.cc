@@ -3,8 +3,9 @@
 using std::cout;
 using std::endl;
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
+#include <GL/glew.h>
+// #define GL_GLEXT_PROTOTYPES
+// #include <GL/gl.h>
 // #include <GL/glut.h>
 #include "common.hh"
 #include "vec3.hh"
@@ -88,11 +89,34 @@ void Camera::heading(float amount) {
     rot_ = ry * rot_;
 }
 
-void Camera::set() {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+// void Camera::set() {
+//     glMatrixMode(GL_MODELVIEW);
+//     glLoadIdentity();
 
-    glMultMatrixd(rot_.data());
+//     glMultMatrixd(rot_.data());
 
-    glTranslatef(-pos_.x, -pos_.y, -pos_.z);
+//     glTranslatef(-pos_.x, -pos_.y, -pos_.z);
+// }
+
+float* Camera::projection(unsigned int w, unsigned int h) {
+    float aspect = static_cast<float>(w) / h;
+    float fovY = 45.0;
+    float fH = tan(fovY / 360 * PI) * 1;
+    float fW = fH * aspect;
+
+    const float near = 1.0;
+    const float far = 500;
+
+    float a = 0; // (fW + (-fW)) / (fW - (-fW))
+    float b = 0; // (fH + (-fH)) / (fH - (-fH))
+    float c = (far + near) / (far - near);
+    float d = (2 * far * near) / (far -near);
+
+    float* r = new float[16];
+    r[0] = near / (2 * fW); r[1] = 0;               r[2] = a;     r[3] = 0;
+    r[4] = 0;               r[5] = near / (2 * fH); r[6] = b;     r[7] = 0;
+    r[8] = 0;               r[9] = 0;               r[10] = c;    r[11] = d;
+    r[12] = 0;              r[13] = 0;              r[14] = -1.0; r[15] = 0;
+
+    return r;
 }

@@ -12,23 +12,23 @@ public:
     ~Matrix();
 
     Matrix& operator=(const Matrix& b);
-    Matrix& operator<<(const double d);
+    Matrix& operator<<(const float d);
     // Matrix * Matrix
     Matrix operator*(const Matrix& b) const;
     // Matrix += Matrix
     Matrix& operator+=(const Matrix& b);
     // Matrix * int
-    // Matrix& operator*=(const double& b);
+    // Matrix& operator*=(const float& b);
     // Vec3 = Vec * Matrix
     Vec3 operator*(const Vec3& b) const;
 
     // i rivi, j sarake
-    void set(const unsigned int i, const unsigned int j, const double d);
-    double get(const unsigned int i, const unsigned int j) const;
+    void set(const unsigned int i, const unsigned int j, const float d);
+    float get(const unsigned int i, const unsigned int j) const;
 
     void unhomogenize();
 
-    double* data();
+    float* data();
 private:
     // Alustuksen apu. varaa sopivan taulukon
     void init(const unsigned int m, const unsigned int n, const unsigned int k = 0);
@@ -44,7 +44,7 @@ private:
     unsigned int m_; // rivit
     unsigned int n_; // sarakket
     unsigned int k_; // montako alkiota lisätty
-    double* d_; // matriisin sisältä kaksi ulotteisena taulukkona
+    float* d_; // matriisin sisältä kaksi ulotteisena taulukkona
 };
 
 #endif

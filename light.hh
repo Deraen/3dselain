@@ -1,7 +1,7 @@
 #ifndef LIGHT_HH
 #define LIGHT_HH
 
-#include <GL/gl.h>
+#include <GL/glew.h>
 
 #include "drawable.hh"
 #include "animated.hh"

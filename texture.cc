@@ -4,7 +4,7 @@ using std::string;
 using std::ifstream;
 using std::ios_base;
 
-#include <GL/gl.h>
+#include <GL/glew.h>
 #include <GL/glfw.h>
 
 #include "texture.hh"
