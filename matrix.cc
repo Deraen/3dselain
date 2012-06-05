@@ -21,10 +21,10 @@ void Matrix::init(const unsigned int m, const unsigned int n, const unsigned int
     m_ = m;
     n_ = n;
     k_ = k;
-    d_ = new double[m_ * n_];
+    d_ = new float[m_ * n_];
 }
 
-Matrix& Matrix::operator<<(const double d) {
+Matrix& Matrix::operator<<(const float d) {
     assert(k_ < m_ * n_ && "Can't add more values.");
     d_[k_] = d;
     ++k_;
@@ -48,7 +48,7 @@ Matrix Matrix::operator*(const Matrix& b) const {
     for (unsigned int i = 0; i < result.m_; ++i) {
         // oikean sarakkeet = tulos sarakkeet
         for (unsigned int j = 0; j < result.n_; ++j) {
-            double r = 0;
+            float r = 0;
             // vasemman sarakkeet
             for (unsigned int k = 0; k < n_; ++k) {
                 r += get(i, k) * b.get(k, j);
@@ -60,7 +60,7 @@ Matrix Matrix::operator*(const Matrix& b) const {
 }
 
 
-// Matrix& Matrix::operator*=(const double& b) {
+// Matrix& Matrix::operator*=(const float& b) {
 //     // rivit - molemmilla saman verran
 //     for (unsigned int i = 0; i < m_ * n_; ++i) {
 //         d_[i] *= b;
@@ -68,12 +68,12 @@ Matrix Matrix::operator*(const Matrix& b) const {
 //     return *this;
 // }
 
-void Matrix::set(const unsigned int i, const unsigned int j, const double d) {
+void Matrix::set(const unsigned int i, const unsigned int j, const float d) {
     assertRowColumn(i, j);
     d_[n_ * i + j] = d;
 }
 
-double Matrix::get(const unsigned int i, const unsigned int j) const {
+float Matrix::get(const unsigned int i, const unsigned int j) const {
     assertRowColumn(i, j);
     return d_[n_ * i + j];
 }
@@ -101,6 +101,6 @@ Vec3 Matrix::operator *(Vec3 const& b) const {
                b.x * get(2, 0) + b.y * get(2, 1) + b.z * get(2, 2));
 }
 
-double* Matrix::data() {
+float* Matrix::data() {
     return d_;
 }

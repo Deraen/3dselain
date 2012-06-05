@@ -1,7 +1,7 @@
 #ifndef SOLIDMATERIAL_HH
 #define SOLIDMATERIAL_HH
 
-#include <GL/gl.h>
+#include <GL/glew.h>
 
 #include "material.hh"
 
@@ -22,6 +22,8 @@ public:
 	void setShinines(GLfloat s);
 
 	void use();
+
+	GLfloat* diffuse() { return ambient_; }
 
 private:
 	GLfloat specular_[4];

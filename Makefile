@@ -1,11 +1,12 @@
 # objektitiedostot
-SRC = main.cc light.cc camera.cc matrix.cc objreader.cc debug.cc texture.cc solidmaterial.cc
+SRC = main.cc light.cc camera.cc matrix.cc objreader.cc debug.cc texture.cc \
+solidmaterial.cc shader.cc
 OBJS = $(SRC:.cc=.o)
 
 CXX = LC_ALL=C g++
 CXXDEP = g++
-CXXFLAGS = -Wall -pedantic -Werror
-LIBS = -lGL -lglfw -lm -lassimp
+CXXFLAGS = -Wall -pedantic
+LIBS = -lGL -lglfw -lm -lassimp -lGLEW
 EXE = ohjelma
 
 default: $(EXE)

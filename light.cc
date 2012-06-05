@@ -1,7 +1,6 @@
 #include <cmath>
 
-#include <GL/gl.h>
-
+#include <GL/glew.h>
 #include "drawable.hh"
 #include "light.hh"
 

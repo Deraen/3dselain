@@ -6,9 +6,10 @@ using std::map;
 #include <string>
 using std::string;
 
+#include <GL/glew.h>
 // Define jotain jänniä juttuja varten
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
+// #define GL_GLEXT_PROTOTYPES
+// #include <GL/gl.h>
 #include <GL/glfw.h>
 
 #include "camera.hh"
@@ -17,6 +18,11 @@ using std::string;
 #include "objreader.hh"
 #include "animated.hh"
 #include "light.hh"
+#include "shader.hh"
+
+
+#include <stdio.h>
+
 
 // --- VAKIOT ---
 const int DEF_WINDOW_WIDTH = 800;
@@ -32,6 +38,7 @@ int dX_, dY_, oldX_, oldY_;
 bool wireframe_ = false;
 bool collisionDetection_ = true;
 map<string, Texture*> textures_;
+map<string, Shader*> shaders_;
 vector<Drawable*> objects_;
 
 namespace {
@@ -42,7 +49,7 @@ namespace {
 
 // --- TEXTUURIT ---
 void addTexture(const string& key, const string& filename) {
-    if (textures_.find(filename) != textures_.end()) {
+    if (textures_.find(key) != textures_.end()) {
         Debug::start() << "Yritettiin lisätä tekstuuria samalla avaimella" << Debug::end();
         return;
     }
@@ -58,15 +65,34 @@ Texture* getTexture(const string& key) {
     return i->second;
 }
 
+// --- SHADERIT ---
+
+void addShader(const string& key) {
+    if (shaders_.find(key) != shaders_.end()) {
+        Debug::start() << "Yritettiin lisätä tekstuuria samalla avaimella" << Debug::end();
+        return;
+    }
+    shaders_[key] = new Shader;
+}
+
+Shader* getShader(const string& key) {
+    map<string, Shader*>::iterator i = shaders_.find(key);
+    if (i == shaders_.end()) {
+        Debug::start() << "Ei löydetty shaderia" << Debug::end();
+        return NULL;
+    }
+    return i->second;
+}
+
 // --- OBJEKTIT ---
 
 class Sun : public Light {
 public:
     Sun(): Light()
     {
-        setSpecular(1.0, 1.0, 1.0);
-        setAmbient(0.1, 0.1, 0.1);
-        setDiffuse(1.0, 1.0, 1.0);
+        // setSpecular(1.0, 1.0, 1.0);
+        // setAmbient(0.1, 0.1, 0.1);
+        // setDiffuse(1.0, 1.0, 1.0);
         setPos(0.1, -0.8, 0.1, 0.0); // w = 0 => directional light
     }
 };
@@ -84,6 +110,13 @@ void init() {
     glEnable(GL_LIGHTING);
     // glEnable(GL_COLOR_MATERIAL);
     glShadeModel(GL_SMOOTH);  // Sävytys: GL_FLAT / GL_SMOOTH
+
+    addShader("lightning");
+    getShader("lightning")->addVertexShader("shaders/lightning.vert");
+    getShader("lightning")->addFragmentShader("shaders/lightning.frag");
+    getShader("lightning")->load();
+    getShader("lightning")->bindAttrib(0, "in_position");
+    getShader("lightning")->bindAttrib(1, "in_normal");
 
     // addTexture("stone", "tex/stone.tga");
     // addTexture("stonewall", "tex/stonewall.tga");
@@ -116,6 +149,11 @@ void destroy() {
         delete i->second;
     }
 
+    for (map<string, Shader*>::iterator i = shaders_.begin();
+         i != shaders_.end(); ++i) {
+        delete i->second;
+    }
+
     for (unsigned int i = 0; i < objects_.size(); ++i) {
         delete objects_.at(i);
     }
@@ -136,28 +174,31 @@ void display() {
     // Tyhjennetään ruutu ja Z-puskuri
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    // glMatrixMode(GL_PROJECTION);
+    // glLoadIdentity();
 
     int w, h;
     glfwGetWindowSize(&w, &h);
-    float aspect = static_cast<float>(w) / h;
-    float fovY = 45.0;
-    float fH = tan(fovY / 360 * PI) * 1;
-    float fW = fH * aspect;
 
-    glFrustum(-fW, fW, -fH, fH, 1, 500);
+    // glFrustum(-fW, fW, -fH, fH, 1, 500);
 
     // nopea patentti jolla käsi piirretään sojottamaan ulos näytöstä
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    // glMatrixMode(GL_MODELVIEW);
+    // glLoadIdentity();
 
-    camera_.set();
+    // camera_.set();
+
+    getShader("lightning")->begin();
+    GLenum shader_handle = getShader("lightning")->handle();
+    GLuint modelview_loc = glGetUniformLocation(shader_handle, "modelview_matrix");
+    GLuint projection_loc = glGetUniformLocation(shader_handle, "projection_matrix");
+    glUniformMatrix4fv(modelview_loc, 1, GL_FALSE, camera_.projection(w, h));
+    glUniformMatrix4fv(projection_loc, 1, GL_FALSE, camera_.modelview());
 
     if (wireframe_) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe
     else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for (unsigned int i = 0; i < objects_.size(); ++i) {
-        glPushMatrix();
+        // glPushMatrix();
 
         Drawable* obj = objects_.at(i);
 
@@ -168,8 +209,10 @@ void display() {
 
         obj->draw();
 
-        glPopMatrix();
+        // glPopMatrix();
     }
+
+    getShader("lightning")->end();
 
     // Vaihdetaan piirtopuskuri ja näkyvä puskuri
     glfwSwapBuffers();
@@ -259,6 +302,8 @@ int main(int argc, char *argv[]) {
     glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
     glfwOpenWindow(DEF_WINDOW_WIDTH, DEF_WINDOW_HEIGHT, 8, 8, 8, 8, 8, 0, GLFW_WINDOW);
     glfwSetWindowTitle("JAA");
+
+    glewInit();
 
     init();
 
