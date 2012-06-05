@@ -6,9 +6,9 @@
 class Drawable {
 public:
 	Drawable() {};
-	virtual void draw() = 0;
+	virtual void draw() const = 0;
 	virtual ~Drawable() {}
-	virtual bool collision(const Vec3& point, Vec3& movement) = 0;
+	virtual bool collision(const Vec3& point, Vec3& movement) const = 0;
 
 private:
 };

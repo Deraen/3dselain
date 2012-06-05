@@ -60,47 +60,15 @@ Texture* getTexture(const string& key) {
 
 // --- OBJEKTIT ---
 
-class Sun : public Light, public Animated {
+class Sun : public Light {
 public:
-    Sun():
-        Light()
+    Sun(): Light()
     {
         setSpecular(1.0, 1.0, 1.0);
         setAmbient(0.1, 0.1, 0.1);
         setDiffuse(1.0, 1.0, 1.0);
+        setPos(0.1, -0.8, 0.1, 0.0); // w = 0 => directional light
     }
-
-    void draw() {
-        glTranslatef(position[0], position[1], position[2]);
-        // glutSolidSphere(2.0, 16, 16);
-
-        Light::draw();
-    }
-    void animate(float time) {
-        setPos(100 * sin(time / 5.0), 125.0, 100 * cos(time / 5.0));
-    }
-};
-
-class Kasi : public ObjReader {
-public:
-    Kasi():
-        ObjReader("obj", "kasi.obj")
-    {}
-    ~Kasi() {}
-
-    bool collision(const Vec3& point, Vec3& movement) {
-        return false;
-    }
-
-    void draw() {
-        // hyödynnetään globaaleja rumasti...
-        if (glfwGetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE)) {
-            glRotatef(5 * sin(glfwGetTime() * 3), 1.0, 0.0, 0.0);
-        }
-
-        ObjReader::draw();
-    }
-private:
 };
 
 void init() {
@@ -114,22 +82,31 @@ void init() {
     glEnable(GL_MULTISAMPLE);
 
     glEnable(GL_LIGHTING);
-    glEnable(GL_COLOR_MATERIAL);
+    // glEnable(GL_COLOR_MATERIAL);
     glShadeModel(GL_SMOOTH);  // Sävytys: GL_FLAT / GL_SMOOTH
 
     // addTexture("stone", "tex/stone.tga");
     // addTexture("stonewall", "tex/stonewall.tga");
-    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-001.obj"));
-    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-002.obj"));
-    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-004.obj"));
-    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-029.obj"));
-    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-030.obj"));
-    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-001-031.obj"));
-    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-002-027.obj"));
-    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-002-028.obj"));
-    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "bl-002-032.obj"));
-    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "pa-001-g100_001.obj"));
-    objects_.push_back(new ObjReader("obj/senaatintori-sim-malli", "st-keskusta.obj"));
+    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-001-001.obj"));
+    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-001-002.obj"));
+    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-001-004.obj"));
+    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-001-029.obj"));
+    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-001-030.obj"));
+    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-001-031.obj"));
+    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-002-027.obj"));
+    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-002-028.obj"));
+    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-002-032.obj"));
+    objects_.push_back(new Scene("obj/senaatintori-sim-malli/pa-001-g100_001.obj"));
+    objects_.push_back(new Scene("obj/senaatintori-sim-malli/st-keskusta.obj"));
+
+    for (unsigned int i = 0; i < objects_.size(); ++i) {
+        // XXX: fuuuu
+        Scene* scene = dynamic_cast<Scene*>(objects_.at(i));
+        if (scene) {
+            scene->load();
+        }
+    }
+
     objects_.push_back(new Sun);
 }
 
@@ -147,8 +124,8 @@ void destroy() {
 void handleKey(int key, int action) {
     if (action == GLFW_PRESS) {
         if (key == '1') wireframe_ = !wireframe_;
-        if (key == '2') ObjReader::drawNormals_ = !ObjReader::drawNormals_;
-        if (key == '3') ObjReader::drawFaceCenters_ = !ObjReader::drawFaceCenters_;
+        if (key == '2') Scene::draw_normals_ = !Scene::draw_normals_;
+        if (key == '3') Scene::draw_face_centers_ = !Scene::draw_face_centers_;
         if (key == '4') Texture::enabled = !Texture::enabled;
         if (key == '5') Debug::start()[1] << "Kameran koordinaatti " << camera_.getPos() << Debug::end();
         if (key == '6') collisionDetection_ = !collisionDetection_;
@@ -297,6 +274,8 @@ int main(int argc, char *argv[]) {
 
         running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
     }
+
+    Debug::start()[1] << "Ikkuna suljettu tai ESC." << Debug::end();
 
     destroy();
     glfwTerminate();
