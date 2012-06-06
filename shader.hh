@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include <GL/glew.h>
+#include <GL3/gl3w.h>
 
 class Shader {
 public:

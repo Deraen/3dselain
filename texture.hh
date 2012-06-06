@@ -1,8 +1,9 @@
 #ifndef TEXTURE_HH
 #define TEXTURE_HH
 
+#include <GL3/gl3w.h>
+
 #include <string>
-#include <GL/glew.h>
 
 class Texture {
 public:

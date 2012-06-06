@@ -4,7 +4,7 @@ using std::string;
 using std::ifstream;
 using std::ios_base;
 
-#include <GL/glew.h>
+#include <GL3/gl3w.h>
 #include <GL/glfw.h>
 
 #include "texture.hh"
@@ -26,7 +26,7 @@ Texture::Texture(const string& filename):
 
 
     // select modulate to mix texture with color for shading
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	// glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	// when texture area is small, bilinear filter the closest mipmap
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
