@@ -111,9 +111,9 @@ float* Camera::projection(unsigned int w, unsigned int h) {
     const float far = 500;
 
     projection_.set(0, 0, near / (2 * fW));
-    projection_.set(0, 2, 0); // (fW + (-fW)) / (fW - (-fW))
+    // projection_.set(0, 2, 0); // (fW + (-fW)) / (fW - (-fW))
     projection_.set(1, 1, near / (2 * fH));
-    projection_.set(1, 2, 0); // (fH + (-fH)) / (fH - (-fH))
+    // projection_.set(1, 2, 0); // (fH + (-fH)) / (fH - (-fH))
     projection_.set(2, 2, (far + near) / (far - near));
     projection_.set(2, 3, (2 * far * near) / (far -near));
 

@@ -32,7 +32,8 @@ const unsigned int NUM_OF_KEYS = sizeof(char);
 const unsigned int NUM_OF_BUTTONS = 3;
 
 // --- GLOBAALIT ---
-Camera camera_(6600.0, 20.0, -4800.0);
+// Camera camera_(6600.0, 20.0, -4800.0);
+Camera camera_(0.0, 0.0, 0.0);
 int dX_, dY_, oldX_, oldY_;
 bool wireframe_ = false;
 bool collisionDetection_ = true;
@@ -101,8 +102,9 @@ void init() {
     getShader("lightning")->addVertexShader("shaders/lightning.vert");
     getShader("lightning")->addFragmentShader("shaders/lightning.frag");
     getShader("lightning")->load();
-    getShader("lightning")->bindAttrib(0, "in_position");
-    getShader("lightning")->bindAttrib(1, "in_normal");
+    getShader("lightning")->begin();
+    // getShader("lightning")->bindAttrib(0, "in_position");
+    // getShader("lightning")->bindAttrib(1, "in_normal");
 
     // addTexture("stone", "tex/stone.tga");
     // addTexture("stonewall", "tex/stonewall.tga");
@@ -156,7 +158,7 @@ void handleKey(int key, int action) {
 
 void display() {
     // Tyhjennetään ruutu ja Z-puskuri
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);// | GL_DEPTH_BUFFER_BIT);
 
     // glMatrixMode(GL_PROJECTION);
     // glLoadIdentity();
@@ -167,16 +169,15 @@ void display() {
     // glFrustum(-fW, fW, -fH, fH, 1, 500);
 
     // nopea patentti jolla käsi piirretään sojottamaan ulos näytöstä
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    // glMatrixMode(GL_MODELVIEW);
+    // glLoadIdentity();
 
     // camera_.set();
 
-    getShader("lightning")->begin();
     GLenum shader_handle = getShader("lightning")->handle();
     GLuint modelview_loc = glGetUniformLocation(shader_handle, "modelview");
     GLuint projection_loc = glGetUniformLocation(shader_handle, "projection");
-    GLuint location_loc = glGetUniformLocation(shader_handle, "location");
+    GLuint location_loc = glGetUniformLocation(shader_handle, "location_Matrix");
     glUniformMatrix4fv(modelview_loc, 1, GL_FALSE, camera_.projection(w, h));
     glUniformMatrix4fv(projection_loc, 1, GL_FALSE, camera_.modelview());
     glUniformMatrix4fv(location_loc, 1, GL_FALSE, camera_.location());
@@ -197,8 +198,6 @@ void display() {
 
         // glPopMatrix();
     }
-
-    getShader("lightning")->end();
 
     // Vaihdetaan piirtopuskuri ja näkyvä puskuri
     glfwSwapBuffers();
