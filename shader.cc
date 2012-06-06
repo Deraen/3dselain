@@ -16,10 +16,11 @@ namespace {
 		ifstream file (fname, std::ios::in | std::ios::binary | std::ios::ate);
 		if (file.is_open()) {
 			size = file.tellg();
-			memblock = new char [size];
+			memblock = new char [(int)size + 1];
 			file.seekg (0, std::ios::beg);
 			file.read (memblock, size);
 			file.close();
+			memblock[size] = '\0';
 			Debug::start()[2] << "Shader " << fname << " loaded" << Debug::end();
 			text.assign(memblock);
 		} else {
@@ -50,20 +51,20 @@ namespace {
 		// should additionally check for OpenGL errors here
 	}
 
-	void loadShader(const std::string& filename, GLenum program, GLenum* handle, GLenum type) {
+	void loadShader(const std::string& filename, GLenum program, GLenum& handle, GLenum type) {
 		const char* source = loadFile(filename.c_str());
-		*handle = glCreateShader(type);
-		glShaderSource(*handle, 1, &source, NULL); // NULL = null terminated string
-		glCompileShader(*handle);
+		handle = glCreateShader(type);
+		glShaderSource(handle, 1, &source, NULL); // NULL = null terminated string
+		glCompileShader(handle);
 
 		GLint compiled;
-		glGetShaderiv(*handle, GL_COMPILE_STATUS, &compiled);
+		glGetShaderiv(handle, GL_COMPILE_STATUS, &compiled);
 
 		if (!compiled) {
 			Debug::start()[1] << "Shader failed to build" << Debug::end();
-			printShaderInfoLog(*handle);
+			printShaderInfoLog(handle);
 		} else {
-			glAttachShader(program, *handle);
+			glAttachShader(program, handle);
 		}
 
 		delete source;
@@ -81,15 +82,15 @@ Shader::Shader():
 }
 
 void Shader::addFragmentShader(const std::string &filename) {
-	loadShader(filename, program_, &fragment_, GL_FRAGMENT_SHADER);
+	loadShader(filename, program_, fragment_, GL_FRAGMENT_SHADER);
 }
 
 void Shader::addGeometryShader(const std::string &filename) {
-	loadShader(filename, program_, &geometry_, GL_GEOMETRY_SHADER);
+	loadShader(filename, program_, geometry_, GL_GEOMETRY_SHADER);
 }
 
 void Shader::addVertexShader(const std::string &filename) {
-	loadShader(filename, program_, &vertex_, GL_VERTEX_SHADER);
+	loadShader(filename, program_, vertex_, GL_VERTEX_SHADER);
 }
 
 

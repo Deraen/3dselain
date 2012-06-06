@@ -99,11 +99,11 @@ public:
 
 void init() {
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
-    glEnable(GL_DEPTH_TEST);  // Z-testi
+    // glEnable(GL_DEPTH_TEST);  // Z-testi
 
-    glEnable(GL_CULL_FACE); // Ei piirretä kolmioita kameran takana?
-    glCullFace(GL_FRONT);
-    glFrontFace(GL_CW);
+    // glEnable(GL_CULL_FACE); // Ei piirretä kolmioita kameran takana?
+    // glCullFace(GL_FRONT);
+    // glFrontFace(GL_CW);
 
     glEnable(GL_MULTISAMPLE);
 
@@ -183,15 +183,15 @@ void display() {
     // glFrustum(-fW, fW, -fH, fH, 1, 500);
 
     // nopea patentti jolla käsi piirretään sojottamaan ulos näytöstä
-    // glMatrixMode(GL_MODELVIEW);
-    // glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     // camera_.set();
 
     getShader("lightning")->begin();
     GLenum shader_handle = getShader("lightning")->handle();
-    GLuint modelview_loc = glGetUniformLocation(shader_handle, "modelview_matrix");
-    GLuint projection_loc = glGetUniformLocation(shader_handle, "projection_matrix");
+    GLuint modelview_loc = glGetUniformLocation(shader_handle, "modelview");
+    GLuint projection_loc = glGetUniformLocation(shader_handle, "projection");
     glUniformMatrix4fv(modelview_loc, 1, GL_FALSE, camera_.projection(w, h));
     glUniformMatrix4fv(projection_loc, 1, GL_FALSE, camera_.modelview());
 

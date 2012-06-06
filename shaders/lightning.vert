@@ -3,10 +3,10 @@
 #version 130
 
 // object space to camera space transformation
-uniform mat4 modelview_matrix;
+uniform mat4 modelview;
 
 // camera space to clip coordinates
-uniform mat4 projection_matrix;
+uniform mat4 projection;
 
 in vec3 in_Position;
 in vec3 in_Normal;
@@ -17,5 +17,5 @@ void main(void)
 {
 	//ex_Color = in_Color;
 	ex_Color = vec3(1.0, 1.0, 1.0);
-	gl_Position = projection_matrix * modelview_matrix * vec4(in_Position,1.0);
+	gl_Position = projection * modelview * vec4(in_Position, 1.0);
 }
