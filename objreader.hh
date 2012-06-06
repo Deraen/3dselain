@@ -7,7 +7,7 @@
 #include <cmath>
 #include <map>
 
-#include <GL/glew.h>
+// #include <GL/glew.h>
 
 #include <assimp/assimp.hpp>
 #include <assimp/aiScene.h>       // Output data structure
@@ -37,13 +37,15 @@ struct GLVertex {
         // u = u_; v = v_;
     }
 };
+#pragma pack()
 
+#pragma pack(1)
 struct GLFace {
-    unsigned int a;
-    unsigned int b;
-    unsigned int c;
+    unsigned short a;
+    unsigned short b;
+    unsigned short c;
 
-    GLFace(unsigned int a_, unsigned int b_, unsigned int c_):
+    GLFace(unsigned short a_, unsigned short b_, unsigned short c_):
         a(a_), b(b_), c(c_)
     {}
 };

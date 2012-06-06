@@ -1,7 +1,7 @@
 #ifndef SOLIDMATERIAL_HH
 #define SOLIDMATERIAL_HH
 
-#include <GL/glew.h>
+#include <GL3/gl3w.h>
 
 #include "material.hh"
 

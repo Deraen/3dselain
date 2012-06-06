@@ -1,27 +1,15 @@
 #include <iostream>
-#include <vector>
-using std::vector;
-#include <map>
-using std::map;
-#include <string>
-using std::string;
 
-#include <GL/glew.h>
-// Define jotain jänniä juttuja varten
-// #define GL_GLEXT_PROTOTYPES
-// #include <GL/gl.h>
+#include <GL3/gl3w.h>
 #include <GL/glfw.h>
 
+#include "manager.hh"
 #include "camera.hh"
 #include "drawable.hh"
-#include "texture.hh"
+// #include "texture.hh"
 #include "objreader.hh"
 #include "animated.hh"
 #include "shader.hh"
-
-
-#include <stdio.h>
-
 
 // --- VAKIOT ---
 const int DEF_WINDOW_WIDTH = 800;
@@ -32,14 +20,11 @@ const unsigned int NUM_OF_KEYS = sizeof(char);
 const unsigned int NUM_OF_BUTTONS = 3;
 
 // --- GLOBAALIT ---
-// Camera camera_(6600.0, 20.0, -4800.0);
-Camera camera_(0.0, 0.0, 0.0);
+Camera camera_(6600.0, 20.0, -4800.0);
+// Camera camera_(0.0, 0.0, 0.0);
 int dX_, dY_, oldX_, oldY_;
 bool wireframe_ = false;
 bool collisionDetection_ = true;
-map<string, Texture*> textures_;
-map<string, Shader*> shaders_;
-vector<Drawable*> objects_;
 
 namespace {
     float divide(float a, float b) {
@@ -47,44 +32,8 @@ namespace {
     }
 }
 
-// --- TEXTUURIT ---
-void addTexture(const string& key, const string& filename) {
-    if (textures_.find(key) != textures_.end()) {
-        Debug::start() << "Yritettiin lisätä tekstuuria samalla avaimella" << Debug::end();
-        return;
-    }
-    textures_[key] = new Texture(filename);
-}
-
-Texture* getTexture(const string& key) {
-    map<string, Texture*>::iterator i = textures_.find(key);
-    if (i == textures_.end()) {
-        Debug::start() << "Ei löydetty textuuria" << Debug::end();
-        return NULL;
-    }
-    return i->second;
-}
-
-// --- SHADERIT ---
-
-void addShader(const string& key) {
-    if (shaders_.find(key) != shaders_.end()) {
-        Debug::start() << "Yritettiin lisätä tekstuuria samalla avaimella" << Debug::end();
-        return;
-    }
-    shaders_[key] = new Shader;
-}
-
-Shader* getShader(const string& key) {
-    map<string, Shader*>::iterator i = shaders_.find(key);
-    if (i == shaders_.end()) {
-        Debug::start() << "Ei löydetty shaderia" << Debug::end();
-        return NULL;
-    }
-    return i->second;
-}
-
 void init() {
+    Manager& manager = Manager::instance();
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
     // glEnable(GL_DEPTH_TEST);  // Z-testi
 
@@ -96,52 +45,36 @@ void init() {
 
     // glEnable(GL_LIGHTING);
     // glEnable(GL_COLOR_MATERIAL);
-    glShadeModel(GL_SMOOTH);  // Sävytys: GL_FLAT / GL_SMOOTH
+    // glShadeModel(GL_SMOOTH);  // Sävytys: GL_FLAT / GL_SMOOTH
 
-    addShader("lightning");
-    getShader("lightning")->addVertexShader("shaders/lightning.vert");
-    getShader("lightning")->addFragmentShader("shaders/lightning.frag");
-    getShader("lightning")->load();
-    getShader("lightning")->begin();
+    manager.addShader("lightning");
+    manager.getShader("lightning")->addVertexShader("shaders/lightning.vert");
+    manager.getShader("lightning")->addFragmentShader("shaders/lightning.frag");
+    manager.getShader("lightning")->load();
+    manager.getShader("lightning")->begin();
     // getShader("lightning")->bindAttrib(0, "in_position");
     // getShader("lightning")->bindAttrib(1, "in_normal");
 
     // addTexture("stone", "tex/stone.tga");
     // addTexture("stonewall", "tex/stonewall.tga");
-    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-001-001.obj"));
-    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-001-002.obj"));
-    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-001-004.obj"));
-    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-001-029.obj"));
-    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-001-030.obj"));
-    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-001-031.obj"));
-    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-002-027.obj"));
-    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-002-028.obj"));
-    objects_.push_back(new Scene("obj/senaatintori-sim-malli/bl-002-032.obj"));
-    objects_.push_back(new Scene("obj/senaatintori-sim-malli/pa-001-g100_001.obj"));
-    objects_.push_back(new Scene("obj/senaatintori-sim-malli/st-keskusta.obj"));
+    manager.addObject("bl-001-001", new Scene("obj/senaatintori-sim-malli/bl-001-001.obj"));
+    manager.addObject("bl-001-002", new Scene("obj/senaatintori-sim-malli/bl-001-002.obj"));
+    manager.addObject("bl-001-004", new Scene("obj/senaatintori-sim-malli/bl-001-004.obj"));
+    manager.addObject("bl-001-029", new Scene("obj/senaatintori-sim-malli/bl-001-029.obj"));
+    manager.addObject("bl-001-030", new Scene("obj/senaatintori-sim-malli/bl-001-030.obj"));
+    manager.addObject("bl-001-031", new Scene("obj/senaatintori-sim-malli/bl-001-031.obj"));
+    manager.addObject("bl-002-027", new Scene("obj/senaatintori-sim-malli/bl-002-027.obj"));
+    manager.addObject("bl-002-028", new Scene("obj/senaatintori-sim-malli/bl-002-028.obj"));
+    manager.addObject("bl-002-032", new Scene("obj/senaatintori-sim-malli/bl-002-032.obj"));
+    manager.addObject("pa-001-g100_001", new Scene("obj/senaatintori-sim-malli/pa-001-g100_001.obj"));
+    manager.addObject("st-keskusta", new Scene("obj/senaatintori-sim-malli/st-keskusta.obj"));
 
-    for (unsigned int i = 0; i < objects_.size(); ++i) {
+    for (unsigned int i = 0; i < manager.objectCount(); ++i) {
         // XXX: fuuuu
-        Scene* scene = dynamic_cast<Scene*>(objects_.at(i));
+        Scene* scene = dynamic_cast<Scene*>(manager.getObject(i));
         if (scene) {
             scene->load();
         }
-    }
-}
-
-void destroy() {
-    for (map<string, Texture*>::iterator i = textures_.begin();
-         i != textures_.end(); ++i) {
-        delete i->second;
-    }
-
-    for (map<string, Shader*>::iterator i = shaders_.begin();
-         i != shaders_.end(); ++i) {
-        delete i->second;
-    }
-
-    for (unsigned int i = 0; i < objects_.size(); ++i) {
-        delete objects_.at(i);
     }
 }
 
@@ -157,6 +90,7 @@ void handleKey(int key, int action) {
 }
 
 void display() {
+    Manager& manager = Manager::instance();
     // Tyhjennetään ruutu ja Z-puskuri
     glClear(GL_COLOR_BUFFER_BIT);// | GL_DEPTH_BUFFER_BIT);
 
@@ -166,28 +100,22 @@ void display() {
     int w, h;
     glfwGetWindowSize(&w, &h);
 
-    // glFrustum(-fW, fW, -fH, fH, 1, 500);
-
-    // nopea patentti jolla käsi piirretään sojottamaan ulos näytöstä
-    // glMatrixMode(GL_MODELVIEW);
-    // glLoadIdentity();
-
     // camera_.set();
 
-    GLenum shader_handle = getShader("lightning")->handle();
+    GLenum shader_handle = manager.getShader("lightning")->handle();
     GLuint modelview_loc = glGetUniformLocation(shader_handle, "modelview");
     GLuint projection_loc = glGetUniformLocation(shader_handle, "projection");
-    GLuint location_loc = glGetUniformLocation(shader_handle, "location_Matrix");
+    GLuint location_loc = glGetUniformLocation(shader_handle, "location");
     glUniformMatrix4fv(modelview_loc, 1, GL_FALSE, camera_.projection(w, h));
     glUniformMatrix4fv(projection_loc, 1, GL_FALSE, camera_.modelview());
     glUniformMatrix4fv(location_loc, 1, GL_FALSE, camera_.location());
 
     if (wireframe_) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe
     else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    for (unsigned int i = 0; i < objects_.size(); ++i) {
+    for (unsigned int i = 0; i < manager.objectCount(); ++i) {
         // glPushMatrix();
 
-        Drawable* obj = objects_.at(i);
+        Drawable* obj = manager.getObject(i);
 
         // Jos piirrettävä toteuttaa Animated luokan niin kutsutaan sen
         // animate funktiota joka esim. siirtää sen sijaintia
@@ -204,6 +132,8 @@ void display() {
 }
 
 void handleKeys() {
+    Manager& manager = Manager::instance();
+
     // Alla olevat siirrot tallentuvat kameralle
     if (glfwGetKey('W') || glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT)) camera_.move(-1);
     if (glfwGetKey('S')) camera_.move(1);
@@ -215,8 +145,8 @@ void handleKeys() {
     if (glfwGetKey(' ')) movement += Vec3(0.0, 1.0, 0.0);
     // Ollaanko törmäämässä johonkin?
     // törmäys päivittää liike vektoria törmäyksen mukaisesti
-    for (unsigned int i = 0; i < objects_.size() && collisionDetection_; ++i) {
-        objects_.at(i)->collision(camera_.getPos(), movement);
+    for (unsigned int i = 0; i < manager.objectCount() && collisionDetection_; ++i) {
+        manager.getObject(i)->collision(camera_.getPos(), movement);
     }
 
     // Suoritetaan muutettu siirto
@@ -288,26 +218,33 @@ int main(int argc, char *argv[]) {
     glfwOpenWindow(DEF_WINDOW_WIDTH, DEF_WINDOW_HEIGHT, 8, 8, 8, 8, 8, 0, GLFW_WINDOW);
     glfwSetWindowTitle("JAA");
 
-    glewInit();
+    if (gl3wInit()) {
+        Debug::start()[0] << "failed to initialize OpenGL" << Debug::end();
+        return EXIT_FAILURE;
+    }
+
+    if (!gl3wIsSupported(3, 0)) {
+        Debug::start()[0] << "OpenGL 3.2 not supported" << Debug::end();
+        return EXIT_FAILURE;
+    }
+
+    Debug::start()[0] << "OpenGL " <<  glGetString(GL_VERSION) << ", GLSL " << glGetString(GL_SHADING_LANGUAGE_VERSION) << Debug::end();
 
     init();
 
     glfwSetKeyCallback(handleKey);
-
     glfwSetMouseButtonCallback(mouse);
     glfwSetMousePosCallback(motion);
-
     glfwSetWindowSizeCallback(resize);
 
     while (running) {
         animate();
 
-        running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
+        running = !glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED);
     }
 
     Debug::start()[1] << "Ikkuna suljettu tai ESC." << Debug::end();
 
-    destroy();
     glfwTerminate();
 
     return 0;

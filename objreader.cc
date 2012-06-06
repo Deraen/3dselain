@@ -18,7 +18,7 @@ using std::pair;
 #include <map>
 using std::map;
 
-#include <GL/glew.h>
+#include <GL3/gl3w.h>
 
 #include <assimp/assimp.hpp>
 #include <assimp/aiPostProcess.h> // Post processing flags
@@ -28,6 +28,19 @@ using std::map;
 #include "common.hh"
 #include "material.hh"
 #include "solidmaterial.hh"
+
+#include "manager.hh"
+
+namespace {
+    int CheckGLErrors() {
+        int errCount = 0;
+        for(GLenum currError = glGetError(); currError != GL_NO_ERROR; currError = glGetError()) {
+            Debug::start()[0] << "OpenGL error: " << currError << Debug::end();
+            ++errCount;
+        }
+        return errCount;
+    }
+}
 
 bool Scene::draw_normals_ = false;
 bool Scene::draw_face_centers_ = false;
@@ -137,8 +150,9 @@ bool Mesh::load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, std::vec
 }
 
 void Mesh::draw() const {
-    // XXX: materiaali
-    glDrawElements(GL_TRIANGLES, 3 * face_count_, GL_UNSIGNED_INT, (char*)NULL + start_face_ * sizeof(GLFace));
+    CheckGLErrors();
+    Debug::start()[1] << "Meshin pinnat alkavat indeksistä " << start_face_ << Debug::end();
+    glDrawElements(GL_TRIANGLES, face_count_, GL_UNSIGNED_SHORT, (char*)NULL + start_face_ * sizeof(GLFace));
 }
 
 
@@ -225,8 +239,7 @@ void Scene::load() {
         }
     }
 
-    Debug::start()[2] << "Luettiin " << gl_vertexes.size() << " vertexiä" << Debug::end();
-    Debug::start()[2] << "Luettiin " << gl_faces.size() << " facea" << Debug::end();
+    Debug::start()[2] << "Luettiin " << gl_vertexes.size() << " vertexiä, " << gl_faces.size() << " facea" << Debug::end();
 
     glGenVertexArrays(1, &vao_);
     glBindVertexArray(vao_);
@@ -236,12 +249,14 @@ void Scene::load() {
     glBufferData(GL_ARRAY_BUFFER, gl_vertexes.size() * sizeof(GLVertex), &gl_vertexes.front(), GL_STATIC_DRAW);
 
     // in_position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), 0);
+    GLuint position_loc = glGetAttribLocation(Manager::instance().getShader("lightning")->handle(), "in_Position");
+    glVertexAttribPointer(position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), 0);
     glEnableVertexAttribArray(0);
 
     // in normal
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), (char*)0 + 3 * sizeof(double));
-    glEnableVertexAttribArray(1);
+    // GLuint normal_loc = glGetAttribLocation(Manager::instance().getShader("lightning")->handle(), "in_Normal");
+    // glVertexAttribPointer(normal_loc, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), (char*)0 + 3 * sizeof(float));
+    // glEnableVertexAttribArray(1);
 
     GLuint vinx;
     glGenBuffers(1, &vinx);
@@ -298,12 +313,14 @@ Scene::~Scene() {
 void Scene::draw() const {
     glBindVertexArray(vao_);
 
+    GLuint color_loc = glGetAttribLocation(Manager::instance().getShader("lightning")->handle(), "in_Color");
+
     for (unsigned int i = 0; i < meshes_.size(); ++i) {
         Mesh* mesh = meshes_.at(i);
         // materials_.at(mesh->materialIndex())->use();
         SolidMaterial* material = dynamic_cast<SolidMaterial*>(materials_.at(mesh->materialIndex()));
         const GLfloat* color = material->diffuse();
-        glVertexAttrib3f(2, color[0], color[1], color[2]);
+        // glVertexAttrib3f(color_loc, color[0], color[1], color[2]);
         mesh->draw();
     }
 

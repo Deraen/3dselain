@@ -1,7 +1,7 @@
 #ifndef CAMERA_HH
 #define CAMERA_HH
 
-#include <GL/glew.h>
+// #include <GL/glew.h>
 #include "common.hh"
 #include "vec3.hh"
 #include "matrix.hh"
