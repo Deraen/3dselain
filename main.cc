@@ -17,7 +17,6 @@ using std::string;
 #include "texture.hh"
 #include "objreader.hh"
 #include "animated.hh"
-#include "light.hh"
 #include "shader.hh"
 
 
@@ -84,19 +83,6 @@ Shader* getShader(const string& key) {
     return i->second;
 }
 
-// --- OBJEKTIT ---
-
-class Sun : public Light {
-public:
-    Sun(): Light()
-    {
-        // setSpecular(1.0, 1.0, 1.0);
-        // setAmbient(0.1, 0.1, 0.1);
-        // setDiffuse(1.0, 1.0, 1.0);
-        setPos(0.1, -0.8, 0.1, 0.0); // w = 0 => directional light
-    }
-};
-
 void init() {
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
     // glEnable(GL_DEPTH_TEST);  // Z-testi
@@ -107,7 +93,7 @@ void init() {
 
     glEnable(GL_MULTISAMPLE);
 
-    glEnable(GL_LIGHTING);
+    // glEnable(GL_LIGHTING);
     // glEnable(GL_COLOR_MATERIAL);
     glShadeModel(GL_SMOOTH);  // Sävytys: GL_FLAT / GL_SMOOTH
 
@@ -139,8 +125,6 @@ void init() {
             scene->load();
         }
     }
-
-    objects_.push_back(new Sun);
 }
 
 void destroy() {
@@ -192,8 +176,10 @@ void display() {
     GLenum shader_handle = getShader("lightning")->handle();
     GLuint modelview_loc = glGetUniformLocation(shader_handle, "modelview");
     GLuint projection_loc = glGetUniformLocation(shader_handle, "projection");
+    GLuint location_loc = glGetUniformLocation(shader_handle, "location");
     glUniformMatrix4fv(modelview_loc, 1, GL_FALSE, camera_.projection(w, h));
     glUniformMatrix4fv(projection_loc, 1, GL_FALSE, camera_.modelview());
+    glUniformMatrix4fv(location_loc, 1, GL_FALSE, camera_.location());
 
     if (wireframe_) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe
     else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

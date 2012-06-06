@@ -1,5 +1,5 @@
 # objektitiedostot
-SRC = main.cc light.cc camera.cc matrix.cc objreader.cc debug.cc texture.cc \
+SRC = main.cc camera.cc matrix.cc objreader.cc debug.cc texture.cc \
 solidmaterial.cc shader.cc
 OBJS = $(SRC:.cc=.o)
 
