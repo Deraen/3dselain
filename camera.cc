@@ -15,7 +15,9 @@ using std::endl;
 Camera::Camera(const float x, const float y, const float z):
     pos_(x, y, z),
     delta_(0.0, 0.0, 0.0),
-    rot_(4, 4)
+    rot_(4, 4),
+    projection_(4, 4),
+    location_(4, 4)
 {
     rot_ << 1 << 0 << 0 << 0
          << 0 << 1 << 0 << 0

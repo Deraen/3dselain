@@ -26,6 +26,7 @@ public:
     // void set();
     float* modelview() { return rot_.data(); }
     float* projection(unsigned int w, unsigned int h);
+    float* location();
 
     Vec3 getPos() const;
     Vec3 getVector() const;
@@ -34,6 +35,8 @@ private:
     Vec3 pos_;
     Vec3 delta_;
     Matrix rot_;
+    Matrix projection_;
+    Matrix location_;
 };
 
 #endif
