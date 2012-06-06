@@ -24,4 +24,8 @@ $(EXE): $(OBJS)
 clean:
 	-rm $(OBJS) $(OBJS:.o=.d) $(EXE) $(DEPFILE)
 
+trace:
+	apitrace trace --output=ohjelma.trace ./ohjelma
+	qapitrace ohjelma.trace
+
 .PHONY: clean debug
