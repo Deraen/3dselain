@@ -8,11 +8,10 @@
 #include <map>
 
 // #include <GL/glew.h>
-
+#include <glm/glm.hpp>
 #include <assimp/assimp.hpp>
 #include <assimp/aiScene.h>       // Output data structure
 
-#include "vec3.hh"
 #include "debug.hh"
 #include "drawable.hh"
 #include "material.hh"
@@ -57,16 +56,16 @@ struct GLFace {
 #pragma pack()
 
 struct Face {
-    Vec3* a;
-    Vec3* b;
-    Vec3* c;
-    Vec3 normal;
+    glm::vec3* a;
+    glm::vec3* b;
+    glm::vec3* c;
+    glm::vec3 normal;
     float d;
-    Vec3 min;
-    Vec3 max;
+    glm::vec3 min;
+    glm::vec3 max;
 
-    Face(Vec3* a_, Vec3* b_, Vec3* c_);
-    bool isPointInside(const Vec3& point) const;
+    Face(glm::vec3* a_, glm::vec3* b_, glm::vec3* c_);
+    bool isPointInside(const glm::vec3& point) const;
 };
 
 class Mesh {
@@ -74,8 +73,8 @@ public:
     Mesh();
     virtual void draw() const;
     bool load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, std::vector<GLFace>& gl_faces);
-    Vec3 min() const { return min_; }
-    Vec3 max() const { return max_; }
+    glm::vec3 min() const { return min_; }
+    glm::vec3 max() const { return max_; }
     unsigned int materialIndex() const { return material_; }
     unsigned int firstFace() const { return start_face_; }
     unsigned int faceCount() const { return face_count_; }
@@ -85,8 +84,8 @@ private:
     unsigned int face_count_;
     unsigned int material_;
 
-    Vec3 min_;
-    Vec3 max_;
+    glm::vec3 min_;
+    glm::vec3 max_;
 };
 
 class Scene: public Drawable {
@@ -98,7 +97,7 @@ public:
     void unload();
 
     virtual void draw() const;
-    virtual bool collision(const Vec3& point, Vec3& movement) const;
+    virtual bool collision(const glm::vec3& point, glm::vec3& movement) const;
     // virtual bool rayCollision(const Vec3& point, const Vec3& ray, float& distance) const;
 
     static bool draw_normals_;
@@ -115,8 +114,8 @@ private:
     std::vector<Face*> faces_;
     std::vector<Mesh*> meshes_;
     std::vector<Material*> materials_;
-    Vec3 min_;
-    Vec3 max_;
+    glm::vec3 min_;
+    glm::vec3 max_;
 };
 
 #endif

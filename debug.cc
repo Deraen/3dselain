@@ -52,3 +52,9 @@ Debug& Debug::operator <<(const Debug& /*a*/) {
 Debug& Debug::end() {
     return *me_;
 }
+
+Debug& Debug::operator <<(const glm::vec3& v) {
+    *this << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+    return *this;
+}
+

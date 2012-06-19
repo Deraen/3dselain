@@ -7,7 +7,6 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include "common.hh"
-#include "vec3.hh"
 
 class Camera {
 public:
@@ -24,18 +23,18 @@ public:
 
     // void heading(float amount);
 
-    Vec3 getMovement() const;
+    glm::vec3 getMovement() const;
 
-    void applyMovement(const Vec3& move);
+    void applyMovement(const glm::vec3& move);
 
     void setup();
     // float* modelview();
     // float* projection(unsigned int w, unsigned int h);
     // float* location();
 
-    Vec3 getPos() const;
+    glm::vec3 getPos() const;
     // Vec3 kameran katsomis suuntaan
-    Vec3 getVector() const;
+    glm::vec3 getVector() const;
 
 private:
     glm::vec3 pos_;

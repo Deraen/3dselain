@@ -1,0 +1,7 @@
+.cache
+*.sublime-workspace
+*.trace
+*.o
+*.d
+ohjelma
+
