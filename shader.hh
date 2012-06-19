@@ -2,6 +2,7 @@
 #define SHADER_HH
 
 #include <string>
+#include <map>
 
 #include <GL3/gl3w.h>
 
@@ -18,7 +19,10 @@ public:
 	void end();
 
 	GLenum handle() { return program_; }
-	void bindAttrib(unsigned int i, const std::string& var);
+	// void bindAttrib(unsigned int i, const std::string& var);
+
+	GLuint uniformLoc(const std::string& key);
+	GLuint attribLoc(const std::string& key);
 
 private:
 	bool loaded_;
@@ -27,6 +31,9 @@ private:
 	GLenum vertex_;
 	GLenum fragment_;
 	GLenum geometry_;
+
+	std::map<std::string, GLuint> uniforms_;
+	std::map<std::string, GLuint> attribs_;
 };
 
 #endif

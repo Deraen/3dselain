@@ -102,13 +102,10 @@ void display() {
 
     // camera_.set();
 
-    GLenum shader_handle = manager.getShader("lightning")->handle();
-    GLuint modelview_loc = glGetUniformLocation(shader_handle, "modelview");
-    GLuint projection_loc = glGetUniformLocation(shader_handle, "projection");
-    GLuint location_loc = glGetUniformLocation(shader_handle, "location");
-    glUniformMatrix4fv(modelview_loc, 1, GL_FALSE, camera_.projection(w, h));
-    glUniformMatrix4fv(projection_loc, 1, GL_FALSE, camera_.modelview());
-    glUniformMatrix4fv(location_loc, 1, GL_FALSE, camera_.location());
+    Shader* shader = manager.getShader("lightning");
+    glUniformMatrix4fv(shader->uniformLoc("projection"), 1, GL_FALSE, camera_.projection(w, h));
+    glUniformMatrix4fv(shader->uniformLoc("modelview"), 1, GL_FALSE, camera_.modelview());
+    glUniformMatrix4fv(shader->uniformLoc("location"), 1, GL_FALSE, camera_.location());
 
     if (wireframe_) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe
     else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -224,7 +221,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (!gl3wIsSupported(3, 0)) {
-        Debug::start()[0] << "OpenGL 3.2 not supported" << Debug::end();
+        Debug::start()[0] << "OpenGL 3.0 not supported" << Debug::end();
         return EXIT_FAILURE;
     }
 

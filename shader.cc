@@ -2,6 +2,8 @@
 using std::string;
 #include <fstream>
 using std::ifstream;
+#include <map>
+using std::map;
 
 #include "shader.hh"
 #include "debug.hh"
@@ -117,6 +119,25 @@ void Shader::end() {
 	glUseProgram(0);
 }
 
-void Shader::bindAttrib(unsigned int i, const std::string &var) {
-	glBindAttribLocation(program_, i, var.c_str());
+GLuint Shader::uniformLoc(const std::string &key) {
+	map<string, GLuint>::const_iterator i = uniforms_.find(key);
+	if (i != uniforms_.end()) {
+		return i->second;
+	}
+
+	GLuint loc = glGetUniformLocation(program_, key.c_str());
+	uniforms_[key] = loc;
+	return loc;
+}
+
+
+GLuint Shader::attribLoc(const std::string &key) {
+	map<string, GLuint>::const_iterator i = attribs_.find(key);
+	if (i != attribs_.end()) {
+		return i->second;
+	}
+
+	GLuint loc = glGetAttribLocation(program_, key.c_str());
+	attribs_[key] = loc;
+	return loc;
 }
