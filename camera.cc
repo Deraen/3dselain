@@ -1,128 +1,92 @@
-
 #include <iostream>
 using std::cout;
 using std::endl;
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-// #include <GL/glew.h>
-// #define GL_GLEXT_PROTOTYPES
-// #include <GL/gl.h>
-// #include <GL/glut.h>
+#include <GL3/gl3w.h>
+#include <GL/glfw.h>
+
 #include "common.hh"
-#include "vec3.hh"
 
 #include "camera.hh"
+#include "shader.hh"
+#include "manager.hh"
 
 Camera::Camera(const float x, const float y, const float z):
     pos_(x, y, z),
     delta_(0.0, 0.0, 0.0),
-    rot_(4, 4),
-    projection_(4, 4),
-    location_(4, 4)
+    rot_(),
+    pitch_(0.0),
+    heading_(0.0)
 {
-    rot_ << 1 << 0 << 0 << 0
-         << 0 << 1 << 0 << 0
-         << 0 << 0 << 1 << 0
-         << 0 << 0 << 0 << 1;
-
-    projection_ << 1 << 0 << 0 << 0
-                << 0 << 1 << 0 << 0
-                << 0 << 0 << 1 << 0
-                << 0 << 0 << -1.0 << 1;
-
-    location_ << 1 << 0 << 0 << 0
-              << 0 << 1 << 0 << 0
-              << 0 << 0 << 1 << 0
-              << 0 << 0 << 0 << 1;
-
-    heading(45);
-    pitch(-25);
+    rotate(-25, 45);
 }
 
 void Camera::applyMovement(const Vec3& move) {
-    pos_ += move;
-    delta_ = Vec3(0.0, 0.0, 0.0);
+    pos_.x += move.x;
+    pos_.y += move.y;
+    pos_.z += move.z;
+    delta_ = glm::vec3(0);
 }
 
-Vec3 Camera::getMovement() const { return delta_; }
+Vec3 Camera::getMovement() const {
+    return Vec3(delta_.x, delta_.y, delta_.z);
+}
 
-Vec3 Camera::getPos() const { return pos_; }
+Vec3 Camera::getPos() const {
+    return Vec3(pos_.x, pos_.y, pos_.z);
+}
 
 Vec3 Camera::getVector() const {
-    Vec3 suunta(0.0, 0.0, -1.0);
-    suunta = rot_ * suunta;
-    return suunta.normalize();
+    glm::vec4 suunta(0.0, 0.0, 1.0, 0.0);
+    suunta = suunta * rot_;
+    return Vec3(suunta.x, suunta.y, suunta.z);
 }
 
 void Camera::move(float amount) {
-    Vec3 suunta(0.0, 0.0, 1.0);
-    suunta = rot_ * suunta;
+    glm::vec4 suunta(0.0, 0.0, -1.0, 0.0);
+    suunta = suunta * rot_;
     suunta *= amount;
-    delta_ += suunta;
+    delta_ += glm::vec3(suunta.x, suunta.y, suunta.z);
 }
 
 void Camera::strafe(float amount) {
-    Vec3 suunta(1.0, 0.0, 0.0);
-    suunta = rot_ * suunta;
+    glm::vec4 suunta(1.0, 0.0, 0.0, 0.0);
+    suunta = suunta * rot_;
     suunta *= amount;
-    delta_ += suunta;
+    delta_ += glm::vec3(suunta.x, suunta.y, suunta.z);
 }
 
 void Camera::moveHeight(float amount) {
-    Vec3 suunta(0.0, 1.0, 0.0);
-    suunta = rot_ * suunta;
+    glm::vec4 suunta(0.0, 1.0, 0.0, 0.0);
+    suunta = suunta * rot_;
     suunta *= amount;
-    delta_ += suunta;
+    delta_ += glm::vec3(suunta.x, suunta.y, suunta.z);
 }
 
-void Camera::pitch(float amount) {
-    amount = deg2rad(amount);
-
-    Matrix rx(4, 4);
-    rx << 1 << 0           << 0            << 0
-       << 0 << cos(amount) << -sin(amount) << 0
-       << 0 << sin(amount) << cos(amount)  << 0
-       << 0 << 0           << 0            << 1;
-
-    // Ei suoriteta pyöritystä jos sen seurauksena katsottaisiin
-    // taaksepäin (pitch lukittu -90 ja 90 välille)
-    Matrix newrot = rot_ * rx;
-    if (newrot.get(1, 1) >= 0) rot_ = newrot;
+void Camera::rotate(float pitch, float heading) {
+    pitch_ += pitch;
+    if (pitch_ < -90.0) pitch_ = -90.0;
+    else if (pitch_ > 90.0) pitch_ = 90.0;
+    heading_ -= heading;
+    heading_ = fmod(heading_, 360.0);
+    rot_ = glm::rotate(glm::mat4(), pitch_, glm::vec3(-1.0, 0.0, 0.0));
+    rot_ = glm::rotate(rot_, heading_, glm::vec3(0.0, 1.0, 0.0));
 }
 
-void Camera::heading(float amount) {
-    amount = deg2rad(amount);
+void Camera::setup() {
+    int w, h;
+    glfwGetWindowSize(&w, &h);
+    Shader* shader = Manager::instance().getShader("lightning");
 
-    Matrix ry(4, 4);
-    ry << cos(amount)  << 0 << sin(amount) << 0
-       << 0            << 1 << 0           << 0
-       << -sin(amount) << 0 << cos(amount) << 0
-       << 0            << 0 << 0           << 1;
+    // XXX: muuttuu vain kun ikkunan koko
+    glm::mat4 projection = glm::perspective(45.0f, (1.0f * w) / h, 5.0f, 1000.0f);
+    glUniformMatrix4fv(shader->uniformLoc("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-    rot_ = ry * rot_;
-}
+    glUniformMatrix4fv(shader->uniformLoc("modelview"), 1, GL_FALSE, glm::value_ptr(rot_));
 
-float* Camera::projection(unsigned int w, unsigned int h) {
-    float aspect = static_cast<float>(w) / h;
-    float fovY = 45.0;
-    float fH = tan(fovY / 360.0 * PI) * 1.0;
-    float fW = fH * aspect;
-
-    const float near = 1.0;
-    const float far = 500;
-
-    projection_.set(0, 0, near / (2 * fW));
-    // projection_.set(0, 2, 0); // (fW + (-fW)) / (fW - (-fW))
-    projection_.set(1, 1, near / (2 * fH));
-    // projection_.set(1, 2, 0); // (fH + (-fH)) / (fH - (-fH))
-    projection_.set(2, 2, (far + near) / (far - near));
-    projection_.set(2, 3, (2 * far * near) / (far -near));
-
-    return projection_.data();
-}
-
-float* Camera::location() {
-    location_.set(0, 3, -pos_.x);
-    location_.set(1, 3, -pos_.y);
-    location_.set(2, 3, -pos_.z);
-    return location_.data();
+    glm::mat4 location = glm::translate(glm::mat4(1.0), -pos_);
+    glUniformMatrix4fv(shader->uniformLoc("location"), 1, GL_FALSE, glm::value_ptr(location));
 }

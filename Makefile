@@ -1,5 +1,5 @@
 # objektitiedostot
-SRC = main.cc camera.cc matrix.cc objreader.cc debug.cc texture.cc \
+SRC = main.cc camera.cc objreader.cc debug.cc texture.cc \
 solidmaterial.cc shader.cc manager.cc
 OBJS = $(SRC:.cc=.o) src/gl3w.o
 
