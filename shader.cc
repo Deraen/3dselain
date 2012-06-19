@@ -5,6 +5,7 @@ using std::ifstream;
 #include <map>
 using std::map;
 
+#include "common.hh"
 #include "shader.hh"
 #include "debug.hh"
 
@@ -55,6 +56,10 @@ namespace {
 
 	void loadShader(const std::string& filename, GLenum program, GLenum& handle, GLenum type) {
 		const char* source = loadFile(filename.c_str());
+		if (source == NULL) {
+			throw FatalException("Erästä shaderia ei voitu ladata.");
+		}
+
 		handle = glCreateShader(type);
 		glShaderSource(handle, 1, &source, NULL); // NULL = null terminated string
 		glCompileShader(handle);

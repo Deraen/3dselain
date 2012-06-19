@@ -3,6 +3,7 @@
 #include <GL3/gl3w.h>
 #include <GL/glfw.h>
 
+#include "common.hh"
 #include "manager.hh"
 #include "camera.hh"
 #include "drawable.hh"
@@ -35,7 +36,7 @@ namespace {
 void init() {
     Manager& manager = Manager::instance();
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
-    // glEnable(GL_DEPTH_TEST);  // Z-testi
+    glEnable(GL_DEPTH_TEST);  // Z-testi
 
     // glEnable(GL_CULL_FACE); // Ei piirretä kolmioita kameran takana?
     // glCullFace(GL_FRONT);
@@ -57,6 +58,7 @@ void init() {
 
     // addTexture("stone", "tex/stone.tga");
     // addTexture("stonewall", "tex/stonewall.tga");
+    manager.addObject("alusta", new Scene("obj/alusta.obj"));
     manager.addObject("bl-001-001", new Scene("obj/senaatintori-sim-malli/bl-001-001.obj"));
     manager.addObject("bl-001-002", new Scene("obj/senaatintori-sim-malli/bl-001-002.obj"));
     manager.addObject("bl-001-004", new Scene("obj/senaatintori-sim-malli/bl-001-004.obj"));
@@ -234,13 +236,17 @@ int main(int argc, char *argv[]) {
     glfwSetMousePosCallback(motion);
     glfwSetWindowSizeCallback(resize);
 
-    while (running) {
-        animate();
+    try {
+        while (running) {
+            animate();
 
-        running = !glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED);
+            running = !glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED);
+        }
+
+        Debug::start()[1] << "Ikkuna suljettu tai ESC." << Debug::end();
+    } catch(FatalException e) {
+        Debug::start()[0] << "Lopetetaan ohjelma koska: " << e.what() << Debug::end();
     }
-
-    Debug::start()[1] << "Ikkuna suljettu tai ESC." << Debug::end();
 
     glfwTerminate();
 

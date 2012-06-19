@@ -150,7 +150,7 @@ bool Mesh::load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, std::vec
 }
 
 void Mesh::draw() const {
-    CheckGLErrors();
+    // CheckGLErrors();
     // Debug::start()[1] << "Meshin pinnat alkavat indeksistä " << start_face_ << Debug::end();
     glDrawElements(GL_TRIANGLES, 3 * face_count_, GL_UNSIGNED_SHORT, (char*)NULL + start_face_ * sizeof(GLFace));
 }

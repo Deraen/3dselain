@@ -1,6 +1,9 @@
 #ifndef COMMON_HH
 #define COMMON_HH
 
+#include <string>
+#include <stdexcept>
+
 const double PI = 3.141592;
 const float CAMERA_R = 1.0;
 
@@ -11,5 +14,19 @@ inline double deg2rad(const double angle) {
 inline double rad2deg(const double rad) {
 	return rad * 180 / PI;
 }
+
+class Exception : public std::runtime_error {
+public:
+	Exception(const std::string& msg):
+		std::runtime_error(msg)
+	{}
+};
+
+class FatalException : public Exception {
+public:
+	FatalException(const std::string& msg):
+		Exception(msg)
+	{}
+};
 
 #endif
