@@ -37,7 +37,7 @@ debug: $(OBJS:%.o=%.dbg.o)
 clean:
 	-rm $(OBJS) $(OBJS:.o=.d) $(EXE) $(DEPFILE)
 
-trace:
+trace: $(EXE)
 	apitrace trace --output=ohjelma.trace ./ohjelma
 	qapitrace ohjelma.trace
 
