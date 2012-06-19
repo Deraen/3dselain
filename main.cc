@@ -21,8 +21,8 @@ const unsigned int NUM_OF_KEYS = sizeof(char);
 const unsigned int NUM_OF_BUTTONS = 3;
 
 // --- GLOBAALIT ---
-Camera camera_(6600.0, 20.0, -4800.0);
-// Camera camera_(0.0, 0.0, 0.0);
+Camera camera_(6540.0, 71.0, -4880.0);
+// Camera camera_(0.0, 10.0, 0.0);
 int dX_, dY_, oldX_, oldY_;
 bool wireframe_ = false;
 bool collisionDetection_ = true;
@@ -37,6 +37,9 @@ void init() {
     Manager& manager = Manager::instance();
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
     glEnable(GL_DEPTH_TEST);  // Z-testi
+    // glDepthMask(GL_TRUE);
+    // glDepthFunc(GL_LEQUAL);
+    // glDepthRange(0.0f, 1.0f);
 
     // glEnable(GL_CULL_FACE); // Ei piirretä kolmioita kameran takana?
     // glCullFace(GL_FRONT);
@@ -94,20 +97,9 @@ void handleKey(int key, int action) {
 void display() {
     Manager& manager = Manager::instance();
     // Tyhjennetään ruutu ja Z-puskuri
-    glClear(GL_COLOR_BUFFER_BIT);// | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // glMatrixMode(GL_PROJECTION);
-    // glLoadIdentity();
-
-    int w, h;
-    glfwGetWindowSize(&w, &h);
-
-    // camera_.set();
-
-    Shader* shader = manager.getShader("lightning");
-    glUniformMatrix4fv(shader->uniformLoc("projection"), 1, GL_FALSE, camera_.projection(w, h));
-    glUniformMatrix4fv(shader->uniformLoc("modelview"), 1, GL_FALSE, camera_.modelview());
-    glUniformMatrix4fv(shader->uniformLoc("location"), 1, GL_FALSE, camera_.location());
+    camera_.setup();
 
     if (wireframe_) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe
     else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -134,8 +126,8 @@ void handleKeys() {
     Manager& manager = Manager::instance();
 
     // Alla olevat siirrot tallentuvat kameralle
-    if (glfwGetKey('W') || glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT)) camera_.move(-1);
-    if (glfwGetKey('S')) camera_.move(1);
+    if (glfwGetKey('W') || glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT)) camera_.move(1);
+    if (glfwGetKey('S')) camera_.move(-1);
     if (glfwGetKey('A')) camera_.strafe(-1);
     if (glfwGetKey('D')) camera_.strafe(1);
     // Yhteenlasketut siirrot
@@ -159,8 +151,7 @@ void handleKeys() {
         double pitch   = -dY_ / divide(y, 2) * 7.0;
         dX_ = 0;
         dY_ = 0;
-        camera_.heading(heading);
-        camera_.pitch(pitch);
+        camera_.rotate(pitch, heading);
         glfwGetWindowSize(&x, &y);
         glfwSetMousePos(x / 2, y / 2);
     }

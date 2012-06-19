@@ -21,6 +21,8 @@
 struct GLVertex {
     float x, y, z;
     float nx, ny, nz;
+    // 6 * 4 bytes = 24
+
     // float u, v;
 
     GLVertex(float x_, float y_, float z_):
@@ -41,11 +43,14 @@ struct GLVertex {
 
 #pragma pack(1)
 struct GLFace {
-    unsigned short a;
-    unsigned short b;
-    unsigned short c;
+    unsigned int a;
+    unsigned int b;
+    unsigned int c;
 
-    GLFace(unsigned short a_, unsigned short b_, unsigned short c_):
+    // 3 * 2 bytes = 6... fuu
+    // char padding[2];
+
+    GLFace(unsigned int a_, unsigned int b_, unsigned int c_):
         a(a_), b(b_), c(c_)
     {}
 };
@@ -104,7 +109,7 @@ private:
     std::string filename_;
 
     GLuint vao_;
-    GLuint vertices_buffer_;
+    // GLuint vertices_buffer_;
     // GLuint color_buffer_;
     // GLuint vinx_;
     std::vector<Face*> faces_;

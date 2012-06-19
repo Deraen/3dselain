@@ -152,7 +152,7 @@ bool Mesh::load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, std::vec
 void Mesh::draw() const {
     // CheckGLErrors();
     // Debug::start()[1] << "Meshin pinnat alkavat indeksistä " << start_face_ << Debug::end();
-    glDrawElements(GL_TRIANGLES, 3 * face_count_, GL_UNSIGNED_SHORT, (char*)NULL + start_face_ * sizeof(GLFace));
+    glDrawElements(GL_TRIANGLES, 3 * face_count_, GL_UNSIGNED_INT, (char*)NULL + start_face_ * sizeof(GLFace));
 }
 
 
@@ -248,19 +248,20 @@ void Scene::load() {
     Shader* shader = Manager::instance().getShader("lightning");
 
     // in_position
-    glGenBuffers(1, &vertices_buffer_);
-    glBindBuffer(GL_ARRAY_BUFFER, vertices_buffer_);
+    GLuint buffers[2];
+    glGenBuffers(2, buffers);
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
     glBufferData(GL_ARRAY_BUFFER, gl_vertexes.size() * sizeof(GLVertex), &gl_vertexes.front(), GL_STATIC_DRAW);
-    glVertexAttribPointer(shader->attribLoc("in_Position"), 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), 0);
+    glEnableVertexAttribArray(shader->attribLoc("in_position"));
+    glVertexAttribPointer(shader->attribLoc("in_position"), 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // in normal
     // GLuint normal_loc = glGetAttribLocation(Manager::instance().getShader("lightning")->handle(), "in_Normal");
     // glVertexAttribPointer(normal_loc, 3, GL_FLOAT, GL_FALSE, sizeof(GLVertex), (char*)0 + 3 * sizeof(float));
     // glEnableVertexAttribArray(1);
 
-    GLuint vinx;
-    glGenBuffers(1, &vinx);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vinx);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, gl_faces.size() * sizeof(GLFace), &gl_faces.front(), GL_STATIC_DRAW);
 
     glBindVertexArray(0);
@@ -318,7 +319,7 @@ void Scene::draw() const {
     for (unsigned int i = 0; i < meshes_.size(); ++i) {
         Mesh* mesh = meshes_.at(i);
         SolidMaterial* material = dynamic_cast<SolidMaterial*>(materials_.at(mesh->materialIndex()));
-        glVertexAttrib3fv(shader->attribLoc("in_Color"), material->diffuse());
+        glVertexAttrib3fv(shader->attribLoc("in_color"), material->diffuse());
         mesh->draw();
     }
 
