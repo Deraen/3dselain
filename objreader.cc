@@ -45,9 +45,9 @@ namespace {
 bool Scene::draw_normals_ = false;
 bool Scene::draw_face_centers_ = false;
 
-Face::Face(Vec3* a_, Vec3* b_, Vec3* c_):
+Face::Face(glm::vec3* a_, glm::vec3* b_, glm::vec3* c_):
     a(a_), b(b_), c(c_),
-    normal((*b - *a).cross(*c - *a)),
+    normal(glm::normalize(glm::cross((*b - *a), (*c - *a)))),
     d(0.0),
     min(std::min(a->x, std::min(b->x, c->x)),
         std::min(a->y, std::min(b->y, c->y)),
@@ -56,7 +56,6 @@ Face::Face(Vec3* a_, Vec3* b_, Vec3* c_):
         std::max(a->y, std::max(b->y, c->y)),
         std::max(a->z, std::max(b->z, c->z)))
 {
-    normal.normalize();
     d = -normal.x * a->x - normal.y * a->y - normal.z * a->z;
 }
 
@@ -67,16 +66,16 @@ Face::Face(Vec3* a_, Vec3* b_, Vec3* c_):
 // AB ja AC suuntiin. Jos jompaan kumpaan negatiivinen määrä
 // piste on AB tai AC viivan väärällä puolella.
 // jos yhteensä yli 1 ollaan BC viivan ohi.
-bool Face::isPointInside(const Vec3 &point) const {
-    Vec3 v0 = *c - *a;
-    Vec3 v1 = *b - *a;
-    Vec3 v2 = point - *a;
+bool Face::isPointInside(const glm::vec3 &point) const {
+    glm::vec3 v0 = *c - *a;
+    glm::vec3 v1 = *b - *a;
+    glm::vec3 v2 = point - *a;
 
-    double dot00 = v0.dot(v0);
-    double dot01 = v0.dot(v1);
-    double dot02 = v0.dot(v2);
-    double dot11 = v1.dot(v1);
-    double dot12 = v1.dot(v2);
+    double dot00 = glm::dot(v0, v0);
+    double dot01 = glm::dot(v0, v1);
+    double dot02 = glm::dot(v0, v2);
+    double dot11 = glm::dot(v1, v1);
+    double dot12 = glm::dot(v1, v2);
 
     double inv_denom = 1.0 / (dot00 * dot11 - dot01 * dot01);
     double u = (dot11 * dot02 - dot01 * dot12) * inv_denom;
@@ -270,16 +269,16 @@ void Scene::load() {
     // joilla vähän enempi ominaisuuksia. (törmäystarkistusta varten)
     // vanhat ovat turhia tämän jälkeen (luettu jo vbo muistiin joten ei tarvita alkup
     // tietoja piirtämiseen)
-    vector<Vec3*> vertexes;
+    vector<glm::vec3*> vertexes;
     for (unsigned int i = 0; i < gl_vertexes.size(); ++i) {
         GLVertex v = gl_vertexes.at(i);
-        vertexes.push_back(new Vec3(v.x, v.y, v.z));
+        vertexes.push_back(new glm::vec3(v.x, v.y, v.z));
     }
 
     for (unsigned int i = 0; i < gl_faces.size(); ++i) {
-        Vec3* a = vertexes.at(gl_faces.at(i).a);
-        Vec3* b = vertexes.at(gl_faces.at(i).b);
-        Vec3* c = vertexes.at(gl_faces.at(i).c);
+        glm::vec3* a = vertexes.at(gl_faces.at(i).a);
+        glm::vec3* b = vertexes.at(gl_faces.at(i).b);
+        glm::vec3* c = vertexes.at(gl_faces.at(i).c);
         faces_.push_back(new Face(a, b, c));
     }
 
@@ -289,8 +288,8 @@ void Scene::load() {
 void Scene::unload() {
     loaded_ = false;
     // filename_ = "";
-    min_ = Vec3(0, 0, 0);
-    max_ = Vec3(0, 0, 0);
+    min_ = glm::vec3(0, 0, 0);
+    max_ = glm::vec3(0, 0, 0);
 
     for (unsigned int i = 0; i < meshes_.size(); ++i) {
         delete meshes_.at(i);
@@ -327,7 +326,8 @@ void Scene::draw() const {
 }
 
 
-bool Scene::collision(const Vec3& point, Vec3& movement) const {
+bool Scene::collision(const glm::vec3& point, glm::vec3& movement) const {
+/*
     // jossei liikuttu
     if (movement.length() == 0) return false;
 
@@ -339,7 +339,7 @@ bool Scene::collision(const Vec3& point, Vec3& movement) const {
     double nearestDistance = 0.0;
     Face* nearest = NULL;
 
-    Vec3 p(point + movement);
+    glm::vec3 p(point + movement);
 
 
     // Debug::start() << "Piste " << p << Debug::end();
@@ -367,7 +367,7 @@ bool Scene::collision(const Vec3& point, Vec3& movement) const {
     if (nearest != NULL) {
         movement += nearest->normal * (CAMERA_R - nearestDistance);
     }
-
+*/
     return false;
 }
 

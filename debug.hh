@@ -1,6 +1,7 @@
 #ifndef DEBUG_HH
 #define DEBUG_HH
 
+#include <glm/glm.hpp>
 #include <tr1/memory>
 #include <sstream>
 #include <map>
@@ -12,6 +13,8 @@ public:
     ~Debug();
 
     Debug& operator [](const unsigned int& b);
+
+    Debug& operator <<(const glm::vec3& v);
 
     template <typename T>
     Debug& operator <<(T const& viesti);

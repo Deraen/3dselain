@@ -2,6 +2,7 @@
 
 #include <GL3/gl3w.h>
 #include <GL/glfw.h>
+#include <glm/glm.hpp>
 
 #include "common.hh"
 #include "manager.hh"
@@ -126,14 +127,14 @@ void handleKeys() {
     Manager& manager = Manager::instance();
 
     // Alla olevat siirrot tallentuvat kameralle
-    if (glfwGetKey('W') || glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT)) camera_.move(1);
-    if (glfwGetKey('S')) camera_.move(-1);
-    if (glfwGetKey('A')) camera_.strafe(-1);
-    if (glfwGetKey('D')) camera_.strafe(1);
+    if (glfwGetKey('W') || glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT)) camera_.move(0.1);
+    if (glfwGetKey('S')) camera_.move(-0.1);
+    if (glfwGetKey('A')) camera_.strafe(-0.1);
+    if (glfwGetKey('D')) camera_.strafe(0.1);
     // Yhteenlasketut siirrot
-    Vec3 movement = camera_.getMovement();
+    glm::vec3 movement = camera_.getMovement();
 
-    if (glfwGetKey(' ')) movement += Vec3(0.0, 1.0, 0.0);
+    if (glfwGetKey(' ')) movement += glm::vec3(0.0, 0.1, 0.0);
     // Ollaanko törmäämässä johonkin?
     // törmäys päivittää liike vektoria törmäyksen mukaisesti
     for (unsigned int i = 0; i < manager.objectCount() && collisionDetection_; ++i) {

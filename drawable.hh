@@ -1,14 +1,14 @@
 #ifndef DRAWABLE_HH
 #define DRAWABLE_HH
 
-#include "vec3.hh"
+#include <glm/glm.hpp>
 
 class Drawable {
 public:
 	Drawable() {};
 	virtual void draw() const = 0;
 	virtual ~Drawable() {}
-	virtual bool collision(const Vec3& point, Vec3& movement) const = 0;
+	virtual bool collision(const glm::vec3& point, glm::vec3& movement) const = 0;
 
 private:
 };

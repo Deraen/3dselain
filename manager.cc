@@ -6,6 +6,7 @@ using std::map;
 using std::string;
 
 #include "manager.hh"
+#include "debug.hh"
 
 Manager* Manager::instance_ = NULL;
 

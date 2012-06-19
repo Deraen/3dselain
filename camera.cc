@@ -1,12 +1,14 @@
 #include <iostream>
 using std::cout;
 using std::endl;
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <GL3/gl3w.h>
 #include <GL/glfw.h>
+
+#define GLM_SWIZZLE
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "common.hh"
 
@@ -24,54 +26,42 @@ Camera::Camera(const float x, const float y, const float z):
     rotate(-25, 45);
 }
 
-void Camera::applyMovement(const Vec3& move) {
-    pos_.x += move.x;
-    pos_.y += move.y;
-    pos_.z += move.z;
+void Camera::applyMovement(const glm::vec3& move) {
+    pos_ += move;
     delta_ = glm::vec3(0);
 }
 
-Vec3 Camera::getMovement() const {
-    return Vec3(delta_.x, delta_.y, delta_.z);
+glm::vec3 Camera::getMovement() const {
+    return delta_;
 }
 
-Vec3 Camera::getPos() const {
-    return Vec3(pos_.x, pos_.y, pos_.z);
+glm::vec3 Camera::getPos() const {
+    return pos_;
 }
 
-Vec3 Camera::getVector() const {
+glm::vec3 Camera::getVector() const {
     glm::vec4 suunta(0.0, 0.0, 1.0, 0.0);
     suunta = suunta * rot_;
-    return Vec3(suunta.x, suunta.y, suunta.z);
+    return suunta.xyz;
 }
 
 void Camera::move(float amount) {
-    glm::vec4 suunta(0.0, 0.0, -1.0, 0.0);
-    suunta = suunta * rot_;
-    suunta *= amount;
-    delta_ += glm::vec3(suunta.x, suunta.y, suunta.z);
+    delta_ += glm::vec3(((glm::vec4(0.0, 0.0, -1.0, 0.0) * rot_) * amount).xyz);
 }
 
 void Camera::strafe(float amount) {
-    glm::vec4 suunta(1.0, 0.0, 0.0, 0.0);
-    suunta = suunta * rot_;
-    suunta *= amount;
-    delta_ += glm::vec3(suunta.x, suunta.y, suunta.z);
+    delta_ += glm::vec3(((glm::vec4(1.0, 0.0, 0.0, 0.0) * rot_) * amount).xyz);
 }
 
 void Camera::moveHeight(float amount) {
-    glm::vec4 suunta(0.0, 1.0, 0.0, 0.0);
-    suunta = suunta * rot_;
-    suunta *= amount;
-    delta_ += glm::vec3(suunta.x, suunta.y, suunta.z);
+    delta_ += glm::vec3(((glm::vec4(0.0, 1.0, 0.0, 0.0) * rot_) * amount).xyz);
 }
 
 void Camera::rotate(float pitch, float heading) {
     pitch_ += pitch;
-    if (pitch_ < -90.0) pitch_ = -90.0;
-    else if (pitch_ > 90.0) pitch_ = 90.0;
+    pitch_ = glm::clamp(pitch_, -90.0f, 90.0f);
     heading_ -= heading;
-    heading_ = fmod(heading_, 360.0);
+    heading_ = glm::mod(heading_, 360.0f);
     rot_ = glm::rotate(glm::mat4(), pitch_, glm::vec3(-1.0, 0.0, 0.0));
     rot_ = glm::rotate(rot_, heading_, glm::vec3(0.0, 1.0, 0.0));
 }
