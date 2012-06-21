@@ -43,6 +43,7 @@ private:
     // glm::quat rot_;
     float pitch_;
     float heading_;
+    float time_;
     // glm::mat4 projection_;
     // glm::mat4 location_;
 };

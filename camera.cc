@@ -12,6 +12,7 @@ using std::endl;
 
 #include "common.hh"
 
+#include "debug.hh"
 #include "camera.hh"
 #include "shader.hh"
 #include "manager.hh"
@@ -27,7 +28,15 @@ Camera::Camera(const float x, const float y, const float z):
 }
 
 void Camera::applyMovement(const glm::vec3& move) {
-    pos_ += move;
+    if (move.length() > 0) {
+        // glm::vec3 move2 = glm::normalize(move);
+        float time2 = glfwGetTime();
+        float elapsed = time2 - time_;
+        time_ = time2;
+        glm::vec3 move2 = move;
+        move2 *= elapsed * 200.0;;
+        pos_ += move2;
+    }
     delta_ = glm::vec3(0);
 }
 
