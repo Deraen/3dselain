@@ -45,3 +45,5 @@ void SolidMaterial::setAmbient(GLfloat r, GLfloat g, GLfloat b) {
 void SolidMaterial::setShinines(GLfloat s) {
 	shinines_[0] = s;
 }
+
+void SolidMaterial::use() {}

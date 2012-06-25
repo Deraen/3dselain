@@ -35,14 +35,14 @@ void init() {
     Manager& manager = Manager::instance();
 
     manager.addShader("lightning");
-    manager.getShader("lightning")->addVertexShader("shaders/lightning.vert");
-    manager.getShader("lightning")->addFragmentShader("shaders/lightning.frag");
+    manager.getShader("lightning")->addVertexShader("assets/shaders/lightning.vert");
+    manager.getShader("lightning")->addFragmentShader("assets/shaders/lightning.frag");
     manager.getShader("lightning")->load();
     manager.getShader("lightning")->begin();
 
-    manager.addObject("st-keskusta", new Scene("obj/st-keskusta.obj"));
+    manager.addObject("st-keskusta", new Scene("assets/obj/st-keskusta.obj"));
 
-    LumpLoader lumps("obj/000-helsinki-2009_nowa.lpf");
+    LumpLoader lumps("assets/obj/000-helsinki-2009_nowa.lpf");
     lumps.load();
 
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
