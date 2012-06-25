@@ -45,7 +45,7 @@ void LumpLoader::load() {
         glm::vec3 bb;
         str2floats2 >> bb.x >> turha >> bb.z >> turha >> bb.y;
 
-        filename = std::string("obj") + dir + filename + std::string("_hd.obj");
+        filename = std::string("assets/obj") + dir + filename + std::string("_hd.obj");
         Manager::instance().addObject("-", new Block(filename, origin, bb));
     }
 }

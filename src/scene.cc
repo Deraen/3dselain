@@ -255,6 +255,11 @@ void Scene::unload() {
     }
     meshes_.clear();
 
+    for (auto material: materials_) {
+        delete material;
+    }
+    materials_.clear();
+
     // for (auto face: faces_) {
     //     delete face;
     // }

@@ -4,6 +4,8 @@
 class Material {
 public:
 	Material() {};
+	virtual ~Material() {};
+	virtual void use() = 0;
 private:
 };
 
