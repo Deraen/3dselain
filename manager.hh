@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <string>
+// #include <mutex>
 
 #include "texture.hh"
 #include "shader.hh"
@@ -11,10 +12,9 @@
 
 class Manager {
 public:
-	Manager();
-	~Manager();
-
 	static Manager& instance();
+
+	void unload();
 
 	void addTexture(const std::string& key, const std::string& filename);
 	Texture* getTexture(const std::string& key);
@@ -24,8 +24,11 @@ public:
 	Drawable* getObject(unsigned int i);
 	unsigned int objectCount() const;
 
+	Manager(const Manager&) = delete;
+	void operator=(const Manager&) = delete;
 private:
-	static Manager* instance_;
+	Manager();
+	~Manager();
 
 	std::map<std::string, Texture*> textures_;
 	std::map<std::string, Shader*> shaders_;

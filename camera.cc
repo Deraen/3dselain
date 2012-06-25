@@ -1,7 +1,3 @@
-#include <iostream>
-using std::cout;
-using std::endl;
-
 #include <GL3/gl3w.h>
 #include <GL/glfw.h>
 
@@ -22,12 +18,15 @@ Camera::Camera(const float x, const float y, const float z):
     delta_(0.0, 0.0, 0.0),
     rot_(),
     pitch_(0.0),
-    heading_(0.0)
+    heading_(0.0),
+    mutex_()
 {
     rotate(-25, 45);
 }
 
 void Camera::applyMovement(const glm::vec3& move) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
     if (move.length() > 0) {
         // glm::vec3 move2 = glm::normalize(move);
         float time2 = glfwGetTime();
@@ -67,22 +66,17 @@ void Camera::moveHeight(float amount) {
 }
 
 void Camera::rotate(float pitch, float heading) {
-    pitch_ += pitch;
-    pitch_ = glm::clamp(pitch_, -90.0f, 90.0f);
-    heading_ -= heading;
-    heading_ = glm::mod(heading_, 360.0f);
-    rot_ = glm::rotate(glm::mat4(), pitch_, glm::vec3(-1.0, 0.0, 0.0));
-    rot_ = glm::rotate(rot_, heading_, glm::vec3(0.0, 1.0, 0.0));
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    pitch_ = glm::clamp(pitch_ + pitch, -90.0f, 90.0f);
+    heading_ = glm::mod(heading_ - heading, 360.0f);
+    rot_ = glm::rotate(glm::rotate(glm::mat4(), pitch_, glm::vec3(-1.0, 0.0, 0.0)), heading_, glm::vec3(0.0, 1.0, 0.0));
 }
 
 void Camera::setup() {
-    int w, h;
-    glfwGetWindowSize(&w, &h);
-    Shader* shader = Manager::instance().getShader("lightning");
+    std::lock_guard<std::mutex> lock(mutex_);
 
-    // XXX: muuttuu vain kun ikkunan koko
-    glm::mat4 projection = glm::perspective(45.0f, (1.0f * w) / h, 5.0f, 1000.0f);
-    glUniformMatrix4fv(shader->uniformLoc("projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    Shader* shader = Manager::instance().getShader("lightning");
 
     glUniformMatrix4fv(shader->uniformLoc("modelview"), 1, GL_FALSE, glm::value_ptr(rot_));
 

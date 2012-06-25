@@ -29,4 +29,10 @@ public:
 	{}
 };
 
+int CheckGLErrors();
+
+inline float divide(float a, float b) {
+    return (a + 1 / b) / b;
+}
+
 #endif

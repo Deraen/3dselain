@@ -8,8 +8,6 @@ using std::string;
 #include "manager.hh"
 #include "debug.hh"
 
-Manager* Manager::instance_ = NULL;
-
 Manager::Manager():
     textures_(),
     shaders_(),
@@ -17,26 +15,29 @@ Manager::Manager():
 {}
 
 Manager::~Manager() {
-    for (map<string, Texture*>::iterator i = textures_.begin();
-         i != textures_.end(); ++i) {
-        delete i->second;
-    }
-
-    for (map<string, Shader*>::iterator i = shaders_.begin();
-         i != shaders_.end(); ++i) {
-        delete i->second;
-    }
-
-    for (unsigned int i = 0; i < objects_.size(); ++i) {
-        delete objects_.at(i);
-    }
+    unload();
 }
 
 Manager& Manager::instance() {
-    if (!instance_) {
-        instance_ = new Manager;
+    static Manager instance_;
+    return instance_;
+}
+
+void Manager::unload() {
+    for (auto texture: textures_) {
+        delete texture.second;
     }
-    return *instance_;
+    textures_.clear();
+
+    for (auto shader: shaders_) {
+        delete shader.second;
+    }
+    shaders_.clear();
+
+    for (auto object: objects_) {
+        delete object;
+    }
+    objects_.clear();
 }
 
 // --- TEXTUURIT ---
@@ -49,7 +50,7 @@ void Manager::addTexture(const string& key, const string& filename) {
 }
 
 Texture* Manager::getTexture(const string& key) {
-    map<string, Texture*>::iterator i = textures_.find(key);
+    auto i = textures_.find(key);
     if (i == textures_.end()) {
         Debug::start() << "Ei löydetty textuuria" << Debug::end();
         return NULL;
@@ -67,7 +68,7 @@ void Manager::addShader(const string& key) {
 }
 
 Shader* Manager::getShader(const string& key) {
-    map<string, Shader*>::iterator i = shaders_.find(key);
+    auto i = shaders_.find(key);
     if (i == shaders_.end()) {
         Debug::start() << "Ei löydetty shaderia" << Debug::end();
         return NULL;

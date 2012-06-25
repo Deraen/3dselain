@@ -9,6 +9,8 @@ using std::map;
 #include "shader.hh"
 #include "debug.hh"
 
+#include <GL3/gl3w.h>
+
 namespace {
 	char* loadFile(const char* fname) {
 		ifstream::pos_type size;
@@ -103,6 +105,7 @@ void Shader::addVertexShader(const std::string &filename) {
 
 void Shader::load() {
 	loaded_ = true;
+	Debug::start()[2] << "Linking shader " << Debug::end();
 
 	glLinkProgram(program_);
 }
@@ -125,7 +128,9 @@ void Shader::end() {
 }
 
 GLuint Shader::uniformLoc(const std::string &key) {
-	map<string, GLuint>::const_iterator i = uniforms_.find(key);
+	if (!loaded_) return -1;
+
+	auto i = uniforms_.find(key);
 	if (i != uniforms_.end()) {
 		return i->second;
 	}
@@ -137,7 +142,9 @@ GLuint Shader::uniformLoc(const std::string &key) {
 
 
 GLuint Shader::attribLoc(const std::string &key) {
-	map<string, GLuint>::const_iterator i = attribs_.find(key);
+	if (!loaded_) return -1;
+
+	auto i = attribs_.find(key);
 	if (i != attribs_.end()) {
 		return i->second;
 	}

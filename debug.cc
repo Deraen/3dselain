@@ -4,8 +4,6 @@ using std::endl;
 
 #include "debug.hh"
 
-Debug* Debug::me_ = NULL;
-
 Debug::Debug():
     taso_(0),
     varit_()
@@ -21,6 +19,11 @@ Debug::Debug():
 Debug::~Debug()
 {}
 
+Debug& Debug::instance() {
+    static Debug instance_;
+    return instance_;
+}
+
 Debug& Debug::operator[](const unsigned int& b)
 {
     taso_ = b;
@@ -33,12 +36,8 @@ Debug& Debug::operator[](const unsigned int& b)
 }
 
 Debug& Debug::start() {
-    if (me_ == NULL)
-    {
-        me_ = new Debug();
-    }
-    me_->taso_ = 0;
-    return *me_;
+    instance().taso_ = 0;
+    return instance();
 }
 
 Debug& Debug::operator <<(const Debug& /*a*/) {
@@ -50,7 +49,7 @@ Debug& Debug::operator <<(const Debug& /*a*/) {
 }
 
 Debug& Debug::end() {
-    return *me_;
+    return instance();
 }
 
 Debug& Debug::operator <<(const glm::vec3& v) {

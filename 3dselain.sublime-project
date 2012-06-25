@@ -1,0 +1,21 @@
+{
+	"folders":
+	[
+		{
+			"path": ".",
+			"file_exclude_patterns": [".debug", "*.profile", "*.sublime-workspace", "*.d", "*~"],
+			"folder_exclude_patterns": [".cache"]
+		}
+	],
+	"settings":
+	{
+		"translate_tabs_to_spaces": false,
+		"sublimeclang_enabled": false,
+		"sublimeclang_options":
+		[
+			"-std=c++11",
+			"-I/home/juho/Source/tgraf/tyo3/include",
+			"-ferror-limit=0"
+		]
+	}
+}
