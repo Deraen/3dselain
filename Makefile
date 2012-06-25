@@ -11,13 +11,14 @@ manager.cc \
 common.cc \
 block.cc \
 lumploader.cc \
-)
-
-C_SRC = $(addprefix ../src/, \
 gl3w.c \
 )
 
-OBJS = $(addprefix build/, $(subst ../src/,, $(SRC:.cc=.o)) $(subst ../src/,, $(C_SRC:.c=.o)))
+OBJS = $(addprefix build/, \
+$(subst ../src/,, $(patsubst %.cc, %.o, $(filter %.cc, $(SRC)))) \
+$(subst ../src/,, $(patsubst %.c, %.o, $(filter %.c, $(SRC)))) \
+)
+
 DEPFILES = $(OBJS:%.o=%.d)
 
 CXX = LC_ALL=C g++-4.7
@@ -27,14 +28,14 @@ CFLAGS = -Wall -Iinclude/
 LIBS = -lGL -lm -lassimp -lglfw
 DBGFLAGS= -g
 
-EXE = ../ohjelma
+EXE = ohjelma
 DEBUG-EXE = debug
 DEBUG-OBJS = $(OBJS:%.o=%.dbg.o)
 
 default: $(EXE)
 
 ifneq ($(MAKECMDTARGETS),clean)
-include $(DEPFILES)
+-include $(DEPFILES)
 endif
 
 gl3w:
