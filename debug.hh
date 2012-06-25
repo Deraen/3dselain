@@ -9,9 +9,6 @@
 
 class Debug {
 public:
-    Debug();
-    ~Debug();
-
     Debug& operator [](const unsigned int& b);
 
     Debug& operator <<(const glm::vec3& v);
@@ -21,18 +18,19 @@ public:
 
     Debug& operator <<(const Debug& end);
 
+    static Debug& instance();
     static Debug& start();
     static Debug& end();
 
+    Debug(const Debug&) = delete;
+    Debug& operator=(const Debug&) = delete;
 private:
-    static Debug* me_;
+    Debug();
+    ~Debug();
+
     unsigned int taso_;
     std::ostringstream virta_;
     std::map<unsigned int, std::string> varit_;
-
-    // kielletty
-    Debug(const Debug&);
-    Debug& operator=(const Debug&);
 };
 
 template <typename T>

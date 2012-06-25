@@ -21,9 +21,9 @@ public:
 
 	void setShinines(GLfloat s);
 
-	void use();
-
-	GLfloat* diffuse() { return ambient_; }
+	float* diffuse() { return ambient_; }
+	float* specular() { return specular_; }
+	float* ambient() { return ambient_; }
 
 private:
 	GLfloat specular_[4];

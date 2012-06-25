@@ -1,13 +1,13 @@
 # objektitiedostot
-SRC = main.cc camera.cc objreader.cc debug.cc texture.cc \
-solidmaterial.cc shader.cc manager.cc
+SRC = main.cc camera.cc scene.cc debug.cc texture.cc \
+solidmaterial.cc shader.cc manager.cc common.cc block.cc lumploader.cc
 OBJS = $(SRC:.cc=.o) src/gl3w.o
 
-CXX = LC_ALL=C g++
-CXXDEP = g++
-CXXFLAGS = -Wall -pedantic -Iinclude/
+CXX = LC_ALL=C g++-4.7
+CXXDEP = g++-4.7
+CXXFLAGS = -std=c++11 -Wall -pedantic -Iinclude/
 CFLAGS = -Wall -Iinclude/
-LIBS = -lGL -lglfw -lm -lassimp
+LIBS = -lGL -lm -lassimp -lglfw
 DBGFLAGS= -g
 EXE = ohjelma
 
@@ -30,6 +30,9 @@ endif
 
 $(EXE): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS)
+
+clang:
+	make CXX=clang++ $(EXE)
 
 debug: $(OBJS:%.o=%.dbg.o)
 	$(CXX) $(CXXFLAGS) $(DBGFLAGS) -o $@ $^ $(LIBS)

@@ -42,16 +42,6 @@ void SolidMaterial::setAmbient(GLfloat r, GLfloat g, GLfloat b) {
 	ambient_[3] = 1.0;
 }
 
-
-
 void SolidMaterial::setShinines(GLfloat s) {
 	shinines_[0] = s;
-}
-
-void SolidMaterial::use() {
-    // glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular_);
-    // glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient_);
-    // glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse_);
-    // glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shinines_);
-    // glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission_);
 }
