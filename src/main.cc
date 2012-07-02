@@ -40,7 +40,21 @@ void init() {
     manager.getShader("lightning")->load();
     manager.getShader("lightning")->begin();
 
-    manager.addObject("st-keskusta", new Scene("assets/obj/st-keskusta.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-etelasatama_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-katajanokka_etela_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-kaivopuisto_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-taivallahti_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-eira_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-elaintarhanlahti_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-jatkasaari_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-ullanlinna_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-katajanokka_pohjoinen_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-sornaistensatama_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-ruoholahti_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-toolonlahti_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-hietalahti_hd.obj"));
+    manager.addObject("water", new Scene("assets/obj/water/wa-sompasaarensalmi_hd.obj"));
+
 
     LumpLoader lumps("assets/obj/000-helsinki-2009_nowa.lpf");
     lumps.load();
@@ -174,10 +188,10 @@ void handleKeys() {
 
 void display() {
     Manager& manager = Manager::instance();
-    auto time_now = std::chrono::steady_clock::now();
+    // auto time_now = std::chrono::steady_clock::now();
 
     while (running_) {
-        time_now = std::chrono::steady_clock::now();
+        // time_now = std::chrono::steady_clock::now();
 
         // Tyhjennetään ruutu ja Z-puskuri
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -206,7 +220,7 @@ void display() {
         // Vaihdetaan piirtopuskuri ja näkyvä puskuri
         glfwSwapBuffers();
 
-        std::this_thread::sleep_until(time_now + MS_PER_FRAME);
+        // std::this_thread::sleep_until(time_now + MS_PER_FRAME);
 
         running_ = !glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED);
     }
@@ -216,9 +230,10 @@ void display() {
 
 int main(int argc, char *argv[]) {
     glfwInit();
-    glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
-    glfwOpenWindow(DEF_WINDOW_WIDTH, DEF_WINDOW_HEIGHT, 8, 8, 8, 8, 32, 0, GLFW_WINDOW);
+    glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 8);
+    glfwOpenWindow(DEF_WINDOW_WIDTH, DEF_WINDOW_HEIGHT, 8, 8, 8, 8, 8, 0, GLFW_WINDOW);
     glfwSetWindowTitle("JAA");
+    glfwSwapInterval(1);
 
     if (gl3wInit()) {
         Debug::start()[0] << "failed to initialize OpenGL" << Debug::end();

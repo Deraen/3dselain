@@ -112,7 +112,7 @@ void Scene::load() {
     const aiScene* scene = importer.ReadFile(filename_.c_str(),
         // aiProcess_CalcTangentSpace       |
         aiProcess_Triangulate |
-        aiProcess_JoinIdenticalVertices |
+        // aiProcess_JoinIdenticalVertices |
         aiProcess_SortByPType);
 
     if (!scene) {
@@ -138,6 +138,10 @@ void Scene::load() {
 
         mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
         material->setSpecular(color.r, color.g, color.b);
+
+        float value;
+        mat->Get(AI_MATKEY_OPACITY, value);
+        material->setOpacity(value);
 
         // mat->Get(AI_MATKEY_COLOR_EMISSIVE, color);
         // material->setEmission(color.r, color.g, color.b);
@@ -303,6 +307,7 @@ void Scene::draw() {
         SolidMaterial* material = dynamic_cast<SolidMaterial*>(materials_.at(mesh->materialIndex()));
         glVertexAttrib4fv(shader->attribLoc("in_color_diffuse"), material->diffuse());
         glVertexAttrib4fv(shader->attribLoc("in_color_ambient"), material->ambient());
+        glVertexAttrib1f(shader->attribLoc("in_color_opacity"), material->opacity());
         // glVertexAttrib3fv(shader->attribLoc("in_color_specular"), material->specular());
         mesh->draw();
     }
