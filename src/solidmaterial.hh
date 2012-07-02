@@ -21,11 +21,14 @@ public:
 
 	void setShinines(GLfloat s);
 
+	void setOpacity(float v) { opacity_ = v; }
+
 	void use();
 
 	float* diffuse() { return ambient_; }
 	float* specular() { return specular_; }
 	float* ambient() { return ambient_; }
+	float opacity() { return opacity_; }
 
 private:
 	GLfloat specular_[4];
@@ -33,7 +36,7 @@ private:
 	GLfloat shinines_[4];
 	GLfloat emission_[4];
 	GLfloat ambient_[4];
-
+	float opacity_;
 };
 
 #endif

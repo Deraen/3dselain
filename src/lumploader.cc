@@ -30,8 +30,6 @@ void LumpLoader::load() {
 
         std::replace(dir.begin(), dir.end(), '\\', '/');
 
-        if (dir.substr(0, 7) != "/cd-001") continue;
-
         std::string origin_s;
         getline(line_stream, origin_s, '~');
         std::istringstream str2floats(origin_s);
@@ -46,6 +44,6 @@ void LumpLoader::load() {
         str2floats2 >> bb.x >> turha >> bb.z >> turha >> bb.y;
 
         filename = std::string("assets/obj") + dir + filename + std::string("_hd.obj");
-        Manager::instance().addObject("-", new Block(filename, origin, bb));
+        Manager::instance().addObject("-", new Block(filename, origin, bb, dir.substr(0, 8) == "/streets"));
     }
 }
