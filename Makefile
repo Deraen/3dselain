@@ -27,14 +27,14 @@ CFLAGS = -Wall -Iinclude/
 LIBS = -lGL -lm -lassimp -lglfw
 DBGFLAGS= -g
 
-EXE = ../ohjelma
+EXE = ohjelma
 DEBUG-EXE = debug
 DEBUG-OBJS = $(OBJS:%.o=%.dbg.o)
 
 default: $(EXE)
 
 ifneq ($(MAKECMDTARGETS),clean)
-include $(DEPFILES)
+-include $(DEPFILES)
 endif
 
 gl3w:
