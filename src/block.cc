@@ -22,7 +22,7 @@ void Block::visibility(const glm::vec3& pos) {
         return;
     }
 
-    if (distance >= 1100.0) unload();
+    if (distance >= 800.0) unload();
     // Ladataan jos tarpeeksi lähellä
-    if (distance <= 1000.0) load();
+    if (distance <= 700.0) load();
 }

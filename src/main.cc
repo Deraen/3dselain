@@ -116,6 +116,8 @@ void motion(int x, int y) {
 }
 
 void resize(int w, int h) {
+    Debug::start()[1] << "Resize event " << w << " x " << h << Debug::end();
+
     glViewport(0, 0, w, h);
 
     Shader* shader = Manager::instance().getShader("lightning");

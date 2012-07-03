@@ -64,7 +64,7 @@ $(EXE2): $(OBJS) build/converter.o
 clang:
 	make CXX=clang++ $(EXE)
 
-$(DEBUG-EXE): $(DEBUG-OBJS)
+$(DEBUG-EXE): $(DEBUG-OBJS) build/main.dbg.o
 	$(CXX) $(CXXFLAGS) $(DBGFLAGS) -o $@ $^ $(LIBS)
 
 clean:
