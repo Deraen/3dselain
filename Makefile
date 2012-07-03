@@ -1,11 +1,9 @@
 # objektitiedostot
 SRC = $(addprefix ../src/, \
-main.cc \
 camera.cc \
 scene.cc \
 debug.cc \
 texture.cc \
-solidmaterial.cc \
 shader.cc \
 manager.cc \
 common.cc \
@@ -24,17 +22,20 @@ CXX = LC_ALL=C g++-4.7
 CXXDEP = g++-4.7
 CXXFLAGS = -std=c++11 -Wall -pedantic -Iinclude/
 CFLAGS = -Wall -Iinclude/
-LIBS = -lGL -lm -lassimp -lglfw
+LIBS = -lGL -lassimp -lglfw -lboost_system -lboost_filesystem -lboost_iostreams
 DBGFLAGS= -g
 
 EXE = ohjelma
+EXE2 = converter
 DEBUG-EXE = debug
 DEBUG-OBJS = $(OBJS:%.o=%.dbg.o)
 
-default: $(EXE)
+default: $(EXE) $(EXE2)
 
 ifneq ($(MAKECMDTARGETS),clean)
 -include $(DEPFILES)
+-include build/main.d
+-include build/converter.d
 endif
 
 gl3w:
@@ -54,7 +55,10 @@ gl3w:
 %.dbg.o: ../src/%.c
 	$(CC) $(CFLAGS) $(DBGFLAGS) -c -o $@ $<
 
-$(EXE): $(OBJS)
+$(EXE): $(OBJS) build/main.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS)
+
+$(EXE2): $(OBJS) build/converter.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS)
 
 clang:
@@ -64,7 +68,7 @@ $(DEBUG-EXE): $(DEBUG-OBJS)
 	$(CXX) $(CXXFLAGS) $(DBGFLAGS) -o $@ $^ $(LIBS)
 
 clean:
-	-rm $(OBJS) $(EXE) $(DEBUG-EXE) $(DEBUG-OBJS) $(DEPFILES)
+	-rm $(EXE) $(EXE2) $(DEBUG-EXE) build/*
 
 trace: $(EXE)
 	apitrace trace --output=ohjelma.trace ./ohjelma

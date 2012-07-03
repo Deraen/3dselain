@@ -25,6 +25,15 @@ struct GLVertex {
 };
 #pragma pack()
 
+const unsigned int VERTEX_BYTES = sizeof(GLVertex);
+
+union GLVertexUnion {
+    GLVertex data;
+    char chars[VERTEX_BYTES];
+    GLVertexUnion(): data(0, 0, 0) {}
+    GLVertexUnion(const GLVertex& d): data(d) {}
+};
+
 #pragma pack(1)
 struct GLFace {
     unsigned int a;
@@ -39,5 +48,14 @@ struct GLFace {
     {}
 };
 #pragma pack()
+
+const unsigned int FACE_BYTES = sizeof(GLFace);
+
+union GLFaceUnion {
+    GLFace data;
+    char chars[FACE_BYTES];
+    GLFaceUnion(): data(0, 0, 0) {}
+    GLFaceUnion(const GLFace& d): data(d) {}
+};
 
 #endif

@@ -5,25 +5,39 @@ using std::vector;
 
 #include <GL3/gl3w.h>
 
+#include <boost/filesystem.hpp>
+//#include <boost/filesystem/fstream.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/device/file.hpp>
+#include <boost/iostreams/filter/zlib.hpp>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <assimp/assimp.hpp>
 #include <assimp/aiPostProcess.h> // Post processing flags
 
 #include "scene.hh"
 #include "debug.hh"
 #include "common.hh"
-#include "material.hh"
-#include "solidmaterial.hh"
+#include "gldata.hh"
 
 #include "manager.hh"
 
+namespace io = boost::iostreams;
+
 // ---------- MESH --------------------
+
+namespace {
+    inline glm::vec3 color2vec(const aiColor3D& c) {
+        return glm::vec3(c.r, c.g, c.b);
+    }
+}
 
 Scene::Mesh::Mesh():
     start_face_(0),
     face_count_(0),
     material_(0)//,
-    // min_(0, 0, 0),
-    // max_(0, 0, 0)
 {}
 
 bool Scene::Mesh::load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, std::vector<GLFace>& gl_faces) {
@@ -88,13 +102,12 @@ void Scene::Mesh::draw() const {
 Scene::Scene(const string& filename):
     loaded_(false),
     ready_(false),
-    to_delete_(true),
+    to_delete_(false),
     filename_(filename),
     vao_(0),
     // vinx_(0),
     meshes_()
 {
-    // XXX: center, min, max lataus tässä jostai omasta tiedostosta
 }
 
 // Loader-thread
@@ -107,68 +120,112 @@ void Scene::load() {
     ready_ = false;
     lock.unlock();
 
-    Assimp::Importer importer;
+    if (filename_.extension() == ".gldata") {
 
-    const aiScene* scene = importer.ReadFile(filename_.c_str(),
-        // aiProcess_CalcTangentSpace       |
-        aiProcess_Triangulate |
-        // aiProcess_JoinIdenticalVertices |
-        aiProcess_SortByPType);
+        io::filtering_istream infile;
+        infile.push(io::basic_zlib_decompressor<>());
+        infile.push(io::basic_file_source<char>(filename_.native(), std::ios_base::binary));
 
-    if (!scene) {
-        Debug::start()[0] << importer.GetErrorString() << Debug::end();
-        return;
-    }
+        GlDataHeaderUnion data;
+        infile.read(data.chars, GLDATAHEADER_BYTES);
 
-    if (!scene->HasMeshes()) {
-        return;
-    }
+        materials_.reserve(data.data.materials);
+        for (unsigned int i = 0; i < data.data.materials; ++i) {
+            MaterialUnion d;
+            infile.read(d.chars, MATERIAL_BYTES);
+            materials_.push_back(d.data);
+        }
 
-    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
-        SolidMaterial* material = new SolidMaterial;
+        meshes_.reserve(data.data.meshes);
+        for (unsigned int i = 0; i < data.data.meshes; ++i) {
+            MeshUnion d;
+            infile.read(d.chars, MESH_BYTES);
+            meshes_.push_back(new Mesh(d.data));
+        }
 
-        const aiMaterial* mat = scene->mMaterials[i];
+        gl_vertexes.reserve(data.data.vertexes);
+        for (unsigned int i = 0; i < data.data.vertexes; ++i) {
+            GLVertexUnion d;
+            infile.read(d.chars, VERTEX_BYTES);
+            gl_vertexes.push_back(d.data);
+        }
 
-        aiColor3D color(0.0, 0.0, 0.0);
-        mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-        material->setDiffuse(color.r, color.g, color.b);
+        gl_faces.reserve(data.data.faces);
+        for (unsigned int i = 0; i < data.data.faces; ++i) {
+            GLFaceUnion d;
+            infile.read(d.chars, FACE_BYTES);
+            gl_faces.push_back(d.data);
+        }
 
-        mat->Get(AI_MATKEY_COLOR_AMBIENT, color);
-        material->setAmbient(color.r, color.g, color.b);
+    } else {
 
-        mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
-        material->setSpecular(color.r, color.g, color.b);
+        Assimp::Importer importer;
 
-        float value;
-        mat->Get(AI_MATKEY_OPACITY, value);
-        material->setOpacity(value);
+        const aiScene* scene = importer.ReadFile(filename_.c_str(),
+            aiProcess_ImproveCacheLocality |
+            aiProcess_RemoveRedundantMaterials |
+            aiProcess_OptimizeMeshes |
+            aiProcess_OptimizeGraph
+        );
 
-        // mat->Get(AI_MATKEY_COLOR_EMISSIVE, color);
-        // material->setEmission(color.r, color.g, color.b);
+        if (!scene) {
+            Debug::start()[0] << importer.GetErrorString() << Debug::end();
+            return;
+        }
 
-        // float shininess = 0.0;
-        // mat->Get(AI_MATKEY_SHININESS_STRENGTH, shininess);
-        // material->setShinines(shininess);
+        if (!scene->HasMeshes()) {
+            return;
+        }
 
-        materials_.push_back(material);
-    }
+        for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
+            Material material;
 
-    // bool first = true;
-    for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
-        Mesh* mesh = new Mesh;
-        if (mesh->load(scene->mMeshes[i], gl_vertexes, gl_faces)) {
+            const aiMaterial* mat = scene->mMaterials[i];
 
-            // if (first || mesh->min().x < min_.x) min_.x = mesh->min().x;
-            // if (first || mesh->max().x > max_.x) max_.x = mesh->max().x;
-            // if (first || mesh->min().y < min_.y) min_.y = mesh->min().y;
-            // if (first || mesh->max().y > max_.y) max_.y = mesh->max().y;
-            // if (first || mesh->min().z < min_.z) min_.z = mesh->min().z;
-            // if (first || mesh->max().z > max_.z) max_.z = mesh->max().z;
-            // first = false;
+            aiColor3D color(0.0, 0.0, 0.0);
+            mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+            // material->setDiffuse(color.r, color.g, color.b);
+            material.diffuse = color2vec(color);
 
-            meshes_.push_back(mesh);
-        } else {
-            delete mesh;
+            mat->Get(AI_MATKEY_COLOR_AMBIENT, color);
+            // material->setAmbient(color.r, color.g, color.b);
+            material.ambient = color2vec(color);
+
+            // mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
+            // material->setSpecular(color.r, color.g, color.b);
+
+            float value;
+            mat->Get(AI_MATKEY_OPACITY, value);
+            // material->setOpacity(value);
+            material.opacity = value;
+
+            // mat->Get(AI_MATKEY_COLOR_EMISSIVE, color);
+            // material->setEmission(color.r, color.g, color.b);
+
+            // float shininess = 0.0;
+            // mat->Get(AI_MATKEY_SHININESS_STRENGTH, shininess);
+            // material->setShinines(shininess);
+
+            materials_.push_back(material);
+        }
+
+        // bool first = true;
+        for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+            Mesh* mesh = new Mesh;
+            if (mesh->load(scene->mMeshes[i], gl_vertexes, gl_faces)) {
+
+                // if (first || mesh->min().x < min_.x) min_.x = mesh->min().x;
+                // if (first || mesh->max().x > max_.x) max_.x = mesh->max().x;
+                // if (first || mesh->min().y < min_.y) min_.y = mesh->min().y;
+                // if (first || mesh->max().y > max_.y) max_.y = mesh->max().y;
+                // if (first || mesh->min().z < min_.z) min_.z = mesh->min().z;
+                // if (first || mesh->max().z > max_.z) max_.z = mesh->max().z;
+                // first = false;
+
+                meshes_.push_back(mesh);
+            } else {
+                delete mesh;
+            }
         }
     }
 
@@ -193,8 +250,8 @@ void Scene::load() {
     lock.unlock();
 
     Debug::start()[1] << "+++ " << filename_ << ". "
-                      << scene->mNumMaterials << " Materials. "
-                      << scene->mNumMeshes << " Meshes. "
+                      << materials_.size() << " Materials. "
+                      << meshes_.size() << " Meshes. "
                       << gl_vertexes.size() << " Vertexes. "
                       << gl_faces.size() << " Faces." << Debug::end();
 }
@@ -259,11 +316,6 @@ void Scene::unload() {
     }
     meshes_.clear();
 
-    for (auto material: materials_) {
-        delete material;
-    }
-    materials_.clear();
-
     // for (auto face: faces_) {
     //     delete face;
     // }
@@ -304,15 +356,74 @@ void Scene::draw() {
     Shader* shader = Manager::instance().getShader("lightning");
 
     for (auto mesh: meshes_) {
-        SolidMaterial* material = dynamic_cast<SolidMaterial*>(materials_.at(mesh->materialIndex()));
-        glVertexAttrib4fv(shader->attribLoc("in_color_diffuse"), material->diffuse());
-        glVertexAttrib4fv(shader->attribLoc("in_color_ambient"), material->ambient());
-        glVertexAttrib1f(shader->attribLoc("in_color_opacity"), material->opacity());
+        Material material = materials_.at(mesh->materialIndex());
+        glVertexAttrib4fv(shader->attribLoc("in_color_diffuse"), glm::value_ptr(material.diffuse));
+        glVertexAttrib4fv(shader->attribLoc("in_color_ambient"), glm::value_ptr(material.ambient));
+        glVertexAttrib1f(shader->attribLoc("in_color_opacity"), material.opacity);
         // glVertexAttrib3fv(shader->attribLoc("in_color_specular"), material->specular());
         mesh->draw();
     }
 
     glBindVertexArray(0);
+}
+
+void Scene::write() {
+    if (!loaded_) return;
+
+    if (ready_) {
+        Debug::start()[2] << "Ei voida kirjoittaa sceneä talteen koska tiedot siirrettyä Vao" << Debug::end();
+        return;
+    }
+
+    if (filename_.extension() != ".obj") {
+        Debug::start()[2] << "Ei voida kirjoittaa sceneä talteen kuin .obj tiedoston perusteella" << Debug::end();
+        return;
+    }
+
+    boost::filesystem::path outfile_path = filename_;
+    outfile_path.replace_extension(".gldata");
+
+    string temp = outfile_path.native();
+
+    if (temp.substr(0, 10) == "assets/obj") {
+        outfile_path = boost::filesystem::path(string("assets/gldata") + temp.substr(10));
+    }
+
+    boost::filesystem::create_directories(outfile_path.parent_path());
+
+    io::filtering_ostream outfile;
+    outfile.push(io::basic_zlib_compressor<>());
+    outfile.push(io::basic_file_sink<char>(outfile_path.native(), std::ios_base::binary));
+
+    GlDataHeaderUnion data;
+    data.data.materials = materials_.size();
+    data.data.meshes = meshes_.size();
+    data.data.vertexes = gl_vertexes.size();
+    data.data.faces = gl_faces.size();
+
+    outfile.write(data.chars, GLDATAHEADER_BYTES);
+
+    for (auto material: materials_) {
+        MaterialUnion d(material);
+        outfile.write(d.chars, MATERIAL_BYTES);
+    }
+
+    for (auto mesh: meshes_) {
+        MeshUnion d(*mesh);
+        outfile.write(d.chars, MESH_BYTES);
+    }
+
+    for (auto vertex: gl_vertexes) {
+        GLVertexUnion d(vertex);
+        outfile.write(d.chars, VERTEX_BYTES);
+    }
+
+    for (auto face: gl_faces) {
+        GLFaceUnion d(face);
+        outfile.write(d.chars, FACE_BYTES);
+    }
+
+    Debug::start()[2] << "Writing: " << outfile_path << "." << Debug::end();
 }
 
 bool Scene::collision(const glm::vec3& point, glm::vec3& movement) const {

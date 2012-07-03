@@ -5,10 +5,13 @@
 
 class LumpLoader {
 public:
-	LumpLoader(const std::string& filename);
-	void load();
+    enum LoadMode { OBJ, GLDATA };
+
+    LumpLoader(const std::string& filename, LoadMode mode = GLDATA);
+    void load();
 private:
-	std::string filename_;
+    std::string filename_;
+    LoadMode mode_;
 };
 
 #endif
