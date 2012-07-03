@@ -6,8 +6,9 @@
 #include "block.hh"
 #include "manager.hh"
 
-LumpLoader::LumpLoader(const std::string& filename):
-    filename_(filename)
+LumpLoader::LumpLoader(const std::string& filename, LoadMode mode):
+    filename_(filename),
+    mode_(mode)
 {}
 
 void LumpLoader::load() {
@@ -16,7 +17,10 @@ void LumpLoader::load() {
     char turha;
     bool lue = false;
     while (getline(file, line)) {
-        if (line == "BEGIN") lue = true;
+        if (line == "BEGIN") {
+            lue = true;
+            continue;
+        }
         else if (line == "END") lue = false;
 
         if (!lue || line.length() == 0 || line.at(0) == ';') continue;
@@ -43,7 +47,13 @@ void LumpLoader::load() {
         glm::vec3 bb;
         str2floats2 >> bb.x >> turha >> bb.z >> turha >> bb.y;
 
-        filename = std::string("assets/obj") + dir + filename + std::string("_hd.obj");
+        if (mode_ == OBJ) {
+            filename = std::string("assets/obj") + dir + filename + std::string("_hd.obj");
+        } else if (mode_ == GLDATA) {
+            filename = std::string("assets/gldata") + dir + filename + std::string("_hd.gldata");
+        }
+
+
         Manager::instance().addObject("-", new Block(filename, origin, bb, dir.substr(0, 8) == "/streets"));
     }
 }
