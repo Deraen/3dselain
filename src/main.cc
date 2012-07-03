@@ -55,8 +55,7 @@ void init() {
     manager.addObject("water", new Scene("assets/obj/water/wa-hietalahti_hd.obj"));
     manager.addObject("water", new Scene("assets/obj/water/wa-sompasaarensalmi_hd.obj"));
 
-
-    LumpLoader lumps("assets/obj/000-helsinki-2009_nowa.lpf");
+    LumpLoader lumps("assets/obj/000-helsinki-2009_stripped.lpf");
     lumps.load();
 
     glClearColor(0.0, 0.0, 0.2, 0.0); // Ruudun tyhjennysväri
