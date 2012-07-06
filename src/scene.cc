@@ -358,7 +358,7 @@ void Scene::draw() {
     for (auto mesh: meshes_) {
         Material material = materials_.at(mesh->materialIndex());
         glVertexAttrib4fv(shader->attribLoc("in_color_diffuse"), glm::value_ptr(material.diffuse));
-        glVertexAttrib4fv(shader->attribLoc("in_color_ambient"), glm::value_ptr(material.ambient));
+        // glVertexAttrib4fv(shader->attribLoc("in_color_ambient"), glm::value_ptr(material.ambient));
         glVertexAttrib1f(shader->attribLoc("in_color_opacity"), material.opacity);
         // glVertexAttrib3fv(shader->attribLoc("in_color_specular"), material->specular());
         mesh->draw();

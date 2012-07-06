@@ -4,4 +4,8 @@
 *.o
 *.d
 ohjelma
-
+converter
+include/GL3/
+src/gl3w.c
+assets/obj/
+assets/gldata/

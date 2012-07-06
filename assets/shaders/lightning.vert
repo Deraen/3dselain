@@ -11,7 +11,7 @@ in vec3 in_normal;
 in vec3 in_position;
 in float in_color_opacity;
 //out vec3 ex_normal;
-out vec4 ex_color;
+out vec3 ex_color;
 
 void main(void)
 {
@@ -23,7 +23,7 @@ void main(void)
 
 	float diffuse_intensity = clamp(dot(in_normal, sun_normal), 0, 1);
 
-	ex_color.rgb = in_color_ambient * 0.5;
-	ex_color.rgb += in_color_diffuse * diffuse_intensity;
-	ex_color.a = in_color_opacity;
+	//ex_color.rgb = in_color_ambient * 0.5;
+	ex_color += in_color_diffuse * diffuse_intensity;
+	//ex_color.a = in_color_opacity;
 }
