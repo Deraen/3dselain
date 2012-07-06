@@ -232,9 +232,11 @@ void display() {
 int main(int argc, char *argv[]) {
     glfwInit();
     glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 8);
-    glfwOpenWindow(DEF_WINDOW_WIDTH, DEF_WINDOW_HEIGHT, 8, 8, 8, 8, 8, 0, GLFW_WINDOW);
+    if (!glfwOpenWindow(DEF_WINDOW_WIDTH, DEF_WINDOW_HEIGHT, 8, 8, 8, 8, 8, 0, GLFW_WINDOW)) {
+        Debug::start()[1] << "Kauhea virhe" << Debug::end();
+        return 0;
+    }
     glfwSetWindowTitle("JAA");
-    glfwSwapInterval(1);
 
     if (gl3wInit()) {
         Debug::start()[0] << "failed to initialize OpenGL" << Debug::end();
@@ -257,6 +259,8 @@ int main(int argc, char *argv[]) {
     glfwSetMouseButtonCallback(mouse);
     glfwSetMousePosCallback(motion);
     glfwSetWindowSizeCallback(resize);
+
+    glfwSwapInterval(1);
 
     // Käynnistää silmukan
     try {
