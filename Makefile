@@ -9,6 +9,10 @@ manager.cc \
 common.cc \
 block.cc \
 lumploader.cc \
+mouse.cc \
+keyboard.cc \
+engine.cc \
+selain.cc \
 gl3w.c \
 )
 
