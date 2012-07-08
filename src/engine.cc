@@ -4,13 +4,13 @@
 #include "debug.hh"
 #include "engine.hh"
 
-Engine::Engine(std::string title, int width, int windowHeight):
+Engine::Engine(std::string title, int width, int height):
     mouse_(),
     keyboard_(),
     running_(false),
     title_(title),
     windowWidth_(width),
-    windowHeight_(windowHeight_)
+    windowHeight_(height)
 {}
 
 
@@ -101,6 +101,8 @@ void Engine::init()
     glEnable(GL_MULTISAMPLE);
 
     init();
+
+    resize(); // Ajaa Viewport ja asettaa Projektio matriisin
 }
 
 

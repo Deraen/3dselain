@@ -8,7 +8,7 @@
 
 class Engine {
 public:
-    Engine(std::string title, int width, int windowHeight);
+    Engine(std::string title, int width, int height);
     ~Engine();
 
     virtual void init();
