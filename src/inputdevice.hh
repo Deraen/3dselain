@@ -26,7 +26,6 @@ public:
                 if (bind.second == UP ||
                     bind.second == RELEASED)
                 {
-                    Debug::start() << bind.first << " pressed" << Debug::end();
                     // up -> down
                     bind.second = PRESSED;
                 }
