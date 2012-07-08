@@ -1,6 +1,7 @@
 #ifndef ENGINE_HH
 #define ENGINE_HH
 
+#include <atomic>
 #include <string>
 
 #include "mouse.hh"
@@ -30,7 +31,7 @@ public:
 private:
     Mouse mouse_;
     Keyboard keyboard_;
-    bool running_;
+    std::atomic<bool> running_;
 
     std::string title_;
     int windowWidth_;
