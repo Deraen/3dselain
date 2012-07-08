@@ -1,5 +1,5 @@
-#ifndef KEYBOARD_HH
-#define KEYBOARD_HH
+#ifndef INPUTDEVICE_HH
+#define INPUTDEVICE_HH
 
 #include <map>
 
@@ -92,7 +92,5 @@ private:
 
     std::map<int, KeyStatus> binds_;
 };
-
-typedef InputDevice<glfwGetKey> Keyboard;
 
 #endif
