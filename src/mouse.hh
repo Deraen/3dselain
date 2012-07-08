@@ -3,7 +3,7 @@
 
 #include <GL/glfw.h>
 
-#include "keyboard.hh"
+#include "inputdevice.hh"
 
 class Mouse : public InputDevice<glfwGetMouseButton> {
 public:
