@@ -10,18 +10,22 @@ public:
     Mouse();
     ~Mouse();
 
+    enum MouseMode { ABSOLUTE, RELATIVE };
+
     void update();
+
+    void changeMode(MouseMode mode);
 
     int x() const;
     int y() const;
-    int dx() const;
-    int dy() const;
 
 private:
+    MouseMode mode_;
     int x_;
-    int dx_;
     int y_;
-    int dy_;
+
+    int oldX_;
+    int oldY_;
 };
 
 #endif
