@@ -106,11 +106,22 @@ void Selain::inputs()
     // Suoritetaan muutettu siirto
     camera_.applyMovement(movement);
 
+    if (mouse().keyPressed(GLFW_MOUSE_BUTTON_RIGHT))
+    {
+        mouse().changeMode(Mouse::MouseMode::RELATIVE);
+    }
+
     if (mouse().keyHold(GLFW_MOUSE_BUTTON_RIGHT)) {
-        double heading = -mouse().dx() / divide(windowWidth(), 2) * 7.0;
-        double pitch   = -mouse().dy() / divide(windowHeight(), 2) * 7.0;
+        double heading = -mouse().x() / divide(windowWidth(), 2) * 7.0;
+        double pitch   = -mouse().y() / divide(windowHeight(), 2) * 7.0;
         camera_.rotate(pitch, heading);
     }
+
+    if (mouse().keyReleased(GLFW_MOUSE_BUTTON_RIGHT))
+    {
+        mouse().changeMode(Mouse::MouseMode::ABSOLUTE);
+    }
+
 
     if (keyboard().keyHold(GLFW_KEY_ESC) ||
         !glfwGetWindowParam(GLFW_OPENED))
