@@ -35,6 +35,8 @@ public:
     virtual void visibility(const glm::vec3& point);
 
 
+    const std::string& name() const { return filename_.native(); }
+
     class Mesh {
     public:
         Mesh();

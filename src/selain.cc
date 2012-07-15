@@ -29,23 +29,10 @@ void Selain::init()
     manager.addShader("lightning");
     manager.getShader("lightning")->addVertexShader("assets/shaders/lightning.vert");
     manager.getShader("lightning")->addFragmentShader("assets/shaders/lightning.frag");
+    // manager.getShader("lightning")->addFragmentShader("assets/shaders/rt.frag");
+    // manager.getShader("lightning")->addGeometryShader("assets/shaders/varjo.geom");
     manager.getShader("lightning")->load();
     manager.getShader("lightning")->begin();
-
-    manager.addObject("water", new Scene("assets/obj/water/wa-etelasatama_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-katajanokka_etela_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-kaivopuisto_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-taivallahti_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-eira_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-elaintarhanlahti_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-jatkasaari_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-ullanlinna_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-katajanokka_pohjoinen_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-sornaistensatama_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-ruoholahti_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-toolonlahti_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-hietalahti_hd.obj"));
-    manager.addObject("water", new Scene("assets/obj/water/wa-sompasaarensalmi_hd.obj"));
 
     LumpLoader lumps("assets/obj/000-helsinki-2009_stripped.lpf");
     lumps.load();

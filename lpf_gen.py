@@ -3,6 +3,8 @@
 import sys
 from pyassimp import pyassimp
 
+print("BEGIN")
+
 for obj in sys.argv[1:]:
     try:
         scene = pyassimp.load(obj)
@@ -33,7 +35,9 @@ for obj in sys.argv[1:]:
         if (path[0] == 'obj'):
             del path[0]
 
-        bbsize = (maxcoord[0] - mincoord[0], maxcoord[1] - mincoord[1], maxcoord[2] - mincoord[2])
-        center = (mincoord[0] + bbsize[0] / 2, mincoord[1] + bbsize[1] / 2, mincoord[2] + bbsize[2] / 2)
+        bbsize = (maxcoord[0] - mincoord[0], maxcoord[2] - mincoord[2], maxcoord[1] - mincoord[1])
+        center = (mincoord[0] + bbsize[0] / 2, - (mincoord[2] + bbsize[1] / 2), mincoord[1] + bbsize[2] / 2)
 
         print("{}~\\{}\\~{}~{}".format(filename, '\\'.join(path), ','.join(str(i) for i in center), ','.join(str(i) for i in bbsize)))
+
+print("END")
