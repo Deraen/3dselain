@@ -13,6 +13,7 @@ mouse.cc \
 engine.cc \
 selain.cc \
 gl3w.c \
+material.cc \
 )
 
 OBJS = $(addprefix build/, \

@@ -34,7 +34,7 @@ void Selain::init()
     manager.getShader("lightning")->load();
     manager.getShader("lightning")->begin();
 
-    LumpLoader lumps("assets/obj/000-helsinki-2009_stripped.lpf");
+    LumpLoader lumps("assets/obj/000-helsinki-2009_stripped.lpf", LumpLoader::LoadMode::OBJ);
     lumps.load();
 
     loader_ = std::thread(&Selain::loader, this);

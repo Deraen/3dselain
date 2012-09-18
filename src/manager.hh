@@ -5,10 +5,12 @@
 #include <map>
 #include <string>
 // #include <mutex>
+#include <limits>
 
 #include "texture.hh"
 #include "shader.hh"
 #include "drawable.hh"
+#include "material.hh"
 
 class Manager {
 public:
@@ -24,14 +26,21 @@ public:
 	Drawable* getObject(unsigned int i);
 	unsigned int objectCount() const;
 
+	unsigned int findMaterial(const std::string& name) const;
+	unsigned int newMaterial(const std::string& name);
+	Material* getMaterial(unsigned int i) const;
+
 	Manager(const Manager&) = delete;
 	void operator=(const Manager&) = delete;
+
+	static const unsigned int NOT_FOUND = std::numeric_limits<unsigned int>::max();
 private:
 	Manager();
 	~Manager();
 
 	std::map<std::string, Texture*> textures_;
 	std::map<std::string, Shader*> shaders_;
+	std::vector<Material*> materials_;
 	std::vector<Drawable*> objects_;
 };
 

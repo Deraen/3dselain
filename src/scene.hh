@@ -11,12 +11,14 @@
 #include <boost/filesystem/fstream.hpp>
 
 #include <glm/glm.hpp>
-#include <assimp/assimp.hpp>
-#include <assimp/aiScene.h>
+// #include <assimp/assimp.hpp>
+// #include <assimp/aiScene.h>
+#include <assimp/mesh.h>
 
 #include "debug.hh"
 #include "drawable.hh"
 #include "glcommon.hh"
+#include "material.hh"
 
 class Scene: public Drawable {
 public:
@@ -42,11 +44,10 @@ public:
         Mesh();
         // ~Mesh() {};
         void draw() const;
-        bool load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, std::vector<GLFace>& gl_faces);
+        bool load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, std::vector<GLFace>& gl_faces, const std::string& material_name);
 
         void write(boost::filesystem::ofstream& file);
 
-        unsigned int materialIndex() const { return material_; }
         unsigned int firstFace() const { return start_face_; }
         unsigned int faceCount() const { return face_count_; }
 
@@ -55,13 +56,6 @@ public:
         unsigned int face_count_;
         unsigned int material_;
     };
-
-    struct Material {
-        glm::vec3 ambient;
-        glm::vec3 diffuse;
-        float opacity;
-    };
-
 
 private:
 
@@ -78,7 +72,6 @@ private:
     std::vector<GLFace> gl_faces;
 
     std::vector<Mesh*> meshes_;
-    std::vector<Material> materials_;
 };
 
 const unsigned int MESH_BYTES = sizeof(Scene::Mesh);
@@ -90,13 +83,13 @@ union MeshUnion {
     MeshUnion(const Scene::Mesh& d): data(d) {}
 };
 
-const unsigned int MATERIAL_BYTES = sizeof(Scene::Material);
+// const unsigned int MATERIAL_BYTES = sizeof(Material);
 
-union MaterialUnion {
-    Scene::Material data;
-    char chars[MATERIAL_BYTES];
-    MaterialUnion(): data() {}
-    MaterialUnion(const Scene::Material& d): data(d) {}
-};
+// union MaterialUnion {
+//     Material data;
+//     char chars[MATERIAL_BYTES];
+//     MaterialUnion(): data() {}
+//     MaterialUnion(const Material& d): data(d) {}
+// };
 
 #endif

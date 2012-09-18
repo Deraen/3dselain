@@ -25,7 +25,7 @@ pintojen lkm *
 */
 
 struct GlDataHeader {
-    unsigned int materials;
+    // unsigned int materials;
     unsigned int meshes;
     unsigned int vertexes;
     unsigned int faces;

@@ -14,8 +14,9 @@ using std::vector;
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <assimp/assimp.hpp>
-#include <assimp/aiPostProcess.h> // Post processing flags
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h> // Post processing flags
+#include <assimp/scene.h>
 
 #include "scene.hh"
 #include "debug.hh"
@@ -28,19 +29,13 @@ namespace io = boost::iostreams;
 
 // ---------- MESH --------------------
 
-namespace {
-    inline glm::vec3 color2vec(const aiColor3D& c) {
-        return glm::vec3(c.r, c.g, c.b);
-    }
-}
-
 Scene::Mesh::Mesh():
     start_face_(0),
     face_count_(0),
     material_(0)//,
 {}
 
-bool Scene::Mesh::load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, std::vector<GLFace>& gl_faces) {
+bool Scene::Mesh::load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, std::vector<GLFace>& gl_faces, const std::string& material_name) {
     if (!mesh->HasNormals() || !mesh->HasPositions() || !mesh->HasFaces()) {
         Debug::start()[3] << "Meshiä \"" << mesh->mName.data << "\" ei voitu lukea koska se ei sisällä [normaaleita|sijainteja|pintoja]" << Debug::end();
         return false;
@@ -75,7 +70,8 @@ bool Scene::Mesh::load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, s
         gl_vertexes.push_back(gl_vertex);
     }
 
-    material_ = mesh->mMaterialIndex;
+    // Hae materiaalin nimi ja etsi sillä?
+    material_ = Manager::instance().findMaterial(material_name);
     start_face_ = gl_faces.size();
     for (unsigned int j = 0; j < mesh->mNumFaces; ++j) {
         const aiFace face = mesh->mFaces[j];
@@ -86,6 +82,8 @@ bool Scene::Mesh::load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, s
                            first_vertex + face.mIndices[2]);
             gl_faces.push_back(gl_face);
             ++face_count_;
+        } else {
+            Debug::start()[0] << "Pinta " << j << ". verkossa " << mesh->mName.data << " ei ole kolmio." << Debug::end();
         }
     }
 
@@ -93,6 +91,10 @@ bool Scene::Mesh::load(const aiMesh* mesh, std::vector<GLVertex>& gl_vertexes, s
 }
 
 void Scene::Mesh::draw() const {
+    Material* material = Manager::instance().getMaterial(material_);
+    if (material != NULL) {
+        material->use();
+    }
     glDrawElements(GL_TRIANGLES, 3 * face_count_, GL_UNSIGNED_INT, (char*)NULL + start_face_ * sizeof(GLFace));
 }
 
@@ -129,12 +131,12 @@ void Scene::load() {
         GlDataHeaderUnion data;
         infile.read(data.chars, GLDATAHEADER_BYTES);
 
-        materials_.reserve(data.data.materials);
-        for (unsigned int i = 0; i < data.data.materials; ++i) {
-            MaterialUnion d;
-            infile.read(d.chars, MATERIAL_BYTES);
-            materials_.push_back(d.data);
-        }
+        // materials_.reserve(data.data.materials);
+        // for (unsigned int i = 0; i < data.data.materials; ++i) {
+        //     MaterialUnion d;
+        //     infile.read(d.chars, MATERIAL_BYTES);
+        //     materials_.push_back(d.data);
+        // }
 
         meshes_.reserve(data.data.meshes);
         for (unsigned int i = 0; i < data.data.meshes; ++i) {
@@ -177,42 +179,36 @@ void Scene::load() {
             return;
         }
 
+        std::map<unsigned int, std::string> materialMap;
         for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
-            Material material;
+            aiString name;
+            scene->mMaterials[i]->Get(AI_MATKEY_NAME, name);
+            const char* fuu = name.C_Str();
+            string fuu2(fuu);
 
-            const aiMaterial* mat = scene->mMaterials[i];
+            unsigned int find = Manager::instance().findMaterial(fuu2);
+            if (find == Manager::NOT_FOUND) {
+                find = Manager::instance().newMaterial(fuu2);
+                Material* material = Manager::instance().getMaterial(find);
 
-            aiColor3D color(0.0, 0.0, 0.0);
-            mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-            // material->setDiffuse(color.r, color.g, color.b);
-            material.diffuse = color2vec(color);
+                const aiMaterial* mat = scene->mMaterials[i];
+                material->load(mat);
+            }
 
-            mat->Get(AI_MATKEY_COLOR_AMBIENT, color);
-            // material->setAmbient(color.r, color.g, color.b);
-            material.ambient = color2vec(color);
-
-            // mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
-            // material->setSpecular(color.r, color.g, color.b);
-
-            float value;
-            mat->Get(AI_MATKEY_OPACITY, value);
-            // material->setOpacity(value);
-            material.opacity = value;
-
-            // mat->Get(AI_MATKEY_COLOR_EMISSIVE, color);
-            // material->setEmission(color.r, color.g, color.b);
-
-            // float shininess = 0.0;
-            // mat->Get(AI_MATKEY_SHININESS_STRENGTH, shininess);
-            // material->setShinines(shininess);
-
-            materials_.push_back(material);
+            materialMap[i] = fuu2;
         }
 
         // bool first = true;
         for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
             Mesh* mesh = new Mesh;
-            if (mesh->load(scene->mMeshes[i], gl_vertexes, gl_faces)) {
+
+            auto mat = materialMap.find(scene->mMeshes[i]->mMaterialIndex);
+            std::string material_name;
+            if (mat != materialMap.end()) {
+                material_name = mat->second;
+            }
+
+            if (mesh->load(scene->mMeshes[i], gl_vertexes, gl_faces, material_name)) {
 
                 // if (first || mesh->min().x < min_.x) min_.x = mesh->min().x;
                 // if (first || mesh->max().x > max_.x) max_.x = mesh->max().x;
@@ -250,7 +246,7 @@ void Scene::load() {
     lock.unlock();
 
     Debug::start()[1] << "+++ " << filename_ << ". "
-                      << materials_.size() << " Materials. "
+                      // << materials_.size() << " Materials. "
                       << meshes_.size() << " Meshes. "
                       << gl_vertexes.size() << " Vertexes. "
                       << gl_faces.size() << " Faces." << Debug::end();
@@ -353,14 +349,7 @@ void Scene::draw() {
 
     glBindVertexArray(vao_);
 
-    Shader* shader = Manager::instance().getShader("lightning");
-
     for (auto mesh: meshes_) {
-        Material material = materials_.at(mesh->materialIndex());
-        glUniform3fv(shader->uniformLoc("in_color_diffuse"), 1, glm::value_ptr(material.diffuse));
-        glUniform3fv(shader->uniformLoc("in_color_ambient"), 1, glm::value_ptr(material.ambient));
-        glUniform1f(shader->uniformLoc("in_color_opacity"), material.opacity);
-        // glVertexAttrib3fv(shader->attribLoc("in_color_specular"), material->specular());
         mesh->draw();
     }
 
@@ -396,17 +385,11 @@ void Scene::write() {
     outfile.push(io::basic_file_sink<char>(outfile_path.native(), std::ios_base::binary));
 
     GlDataHeaderUnion data;
-    data.data.materials = materials_.size();
     data.data.meshes = meshes_.size();
     data.data.vertexes = gl_vertexes.size();
     data.data.faces = gl_faces.size();
 
     outfile.write(data.chars, GLDATAHEADER_BYTES);
-
-    for (auto material: materials_) {
-        MaterialUnion d(material);
-        outfile.write(d.chars, MATERIAL_BYTES);
-    }
 
     for (auto mesh: meshes_) {
         MeshUnion d(*mesh);

@@ -43,7 +43,7 @@ void Manager::unload() {
 // --- TEXTUURIT ---
 void Manager::addTexture(const string& key, const string& filename) {
     if (textures_.find(key) != textures_.end()) {
-        Debug::start() << "Yritettiin lisätä tekstuuria samalla avaimella" << Debug::end();
+        Debug::start() << "Yritettiin lisätä tekstuuria samalla avaimella: " << key << Debug::end();
         return;
     }
     textures_[key] = new Texture(filename);
@@ -95,4 +95,23 @@ Drawable* Manager::getObject(unsigned int i) {
 
 unsigned int Manager::objectCount() const {
     return objects_.size();
+}
+
+unsigned int Manager::findMaterial(const std::string& name) const {
+    for (unsigned int i = 0; i < materials_.size(); ++i) {
+        if (materials_.at(i)->name() == name) {
+            return i;
+        }
+    }
+    return Manager::NOT_FOUND;
+}
+
+unsigned int Manager::newMaterial(const std::string& name) {
+    materials_.push_back(new Material(name));
+    return materials_.size() - 1;
+}
+
+Material* Manager::getMaterial(unsigned int i) const {
+    if (i >= materials_.size()) return NULL;
+    return materials_.at(i);
 }

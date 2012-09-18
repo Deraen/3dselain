@@ -5,6 +5,7 @@
 *.d
 ohjelma
 converter
+debug
 include/GL3/
 src/gl3w.c
 assets/obj/
